@@ -1,5 +1,5 @@
 // Qur'on ma'lumotlari: api.alquran.cloud (Madina mushafi, 604 sahifa)
-import { cyrToLat } from "./translit.js";
+import { cyrToLat } from "./translit.js?v=5";
 
 const API = "https://api.alquran.cloud/v1";
 const EDITIONS = { ar: "quran-uthmani", uz: "uz.sodik", ru: "ru.kuliev" };

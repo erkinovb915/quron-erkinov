@@ -1,8 +1,7 @@
 // Oflayn ishlash: ilova qobig'i va o'qilgan sahifalar keshda saqlanadi
-const SHELL = "quron-shell-v3";
+const SHELL = "quron-shell-v5";
 const DATA = "quron-data-v1";
-const ASSETS = ["/", "/index.html", "/css/style.css", "/js/app.js", "/js/quran.js", "/js/translit.js", "/js/i18n.js",
-  "/js/surahs.js", "/js/sky.js", "/img/star-tile.svg", "/img/medallion.svg", "/manifest.json", "/icons/icon-192.png"];
+const ASSETS = ["/", "/index.html", "/img/star-tile.svg", "/img/medallion.svg", "/manifest.json", "/icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(SHELL).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));

@@ -1,8 +1,8 @@
 // Qur'oni Karim — Erkinov loyihasi. Sayt, Telegram Mini App va PWA uchun yagona ilova.
-import { loadMeta, loadPage, prefetch, juzOfPage, toArabicNum } from "./quran.js";
-import { SURAH_NAMES } from "./surahs.js";
-import { STR, tr } from "./i18n.js";
-import { startSky } from "./sky.js";
+import { loadMeta, loadPage, prefetch, juzOfPage, toArabicNum } from "./quran.js?v=5";
+import { SURAH_NAMES } from "./surahs.js?v=5";
+import { STR, tr } from "./i18n.js?v=5";
+import { startSky } from "./sky.js?v=5";
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];

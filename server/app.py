@@ -285,7 +285,8 @@ async def lifespan(app):
 class CachedStatic(StaticFiles):
     async def get_response(self, path, scope):
         resp = await super().get_response(path, scope)
-        if path.endswith(("sw.js", ".html")) or path in ("", "."):
+        if path.endswith(("sw.js", ".html", ".js", ".css", ".json")) or path in ("", "."):
+            # Kod fayllari har safar tekshiriladi — yangilanish darrov yetib boradi
             resp.headers["Cache-Control"] = "no-cache"
         elif resp.status_code == 200:
             resp.headers["Cache-Control"] = "public, max-age=3600"
