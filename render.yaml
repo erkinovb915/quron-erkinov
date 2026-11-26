@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: quron-erkinov
+    runtime: python
+    plan: free
+    region: frankfurt
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server.app:app --host 0.0.0.0 --port $PORT --proxy-headers
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: PUBLIC_URL
+        sync: false
+      - key: CRON_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: quron-erkinov-db
+          property: connectionString
+databases:
+  - name: quron-erkinov-db
+    plan: free
+    region: frankfurt

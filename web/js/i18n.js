@@ -1,0 +1,52 @@
+export const STR = {
+  uz: {
+    brand: "Erkinov loyihasi", title: "Qur'oni Karim", subtitle: "3D mushaf · o'zbekcha va ruscha tarjima",
+    start: "O'qishni boshlash", continueFrom: "{p}-sahifadan davom etish", fromStart: "Boshidan",
+    next: "Keyingi", prev: "Oldingi", surahs: "Suralar", juzs: "Poralar", bookmarks: "Xatcho'plar",
+    search: "Sura nomi yoki raqami...", settings: "Sozlamalar", language: "Til", view: "Ko'rinish",
+    both: "Arab + tarjima", trOnly: "Tarjima", fontSize: "Harf o'lchami", sound: "Varaq ovozi",
+    lampLabel: "Chiroq", bookmarkThis: "Shu sahifani belgilash", installText: "Telefonga ilova qilib o'rnatish",
+    install: "📲 O'rnatish", copy: "Nusxa olish", markHere: "📍 Shu yerda to'xtadim",
+    sourceNote: "Tarjimalar: Muhammad Sodiq Muhammad Yusuf (uz), E. Kuliyev (ru)",
+    page: "sahifa", juz: "pora", ayahs: "oyat", meccan: "Makkiy", medinan: "Madaniy",
+    loading: "Yuklanmoqda...", loadErr: "Internet aloqasini tekshiring", retry: "Qayta urinish",
+    today: "Bugun", total: "Jami o'qildi", left: "Xatmgacha",
+    tgTitle: "🔔 Telegram eslatma", tgWebText: "Telegram botga ulaning: qayerda qolganingizni har kuni eslatib turadi va o'qish joyingiz sayt bilan bir xil bo'ladi.",
+    tgConnect: "Telegramga ulash", tgInText: "Har kuni shu soatda eslataman (Toshkent vaqti):",
+    remindOn: "Eslatma yoqilgan", remindOff: "Eslatma o'chirilgan",
+    savedPlace: "📍 Joy saqlandi", bookmarked: "🔖 Xatcho'p qo'shildi", unbookmarked: "Xatcho'p olib tashlandi",
+    copied: "Nusxa olindi", noMarks: "Hali xatcho'p yo'q", lampOn: "💡 Chiroq yondi", lampOff: "Chiroq o'chdi",
+    welcomeBack: "Xush kelibsiz! {p}-sahifadasiz", readStat: "📚 {n} sahifa o'qilgan · {p}-sahifada to'xtagansiz",
+    iosTitle: "iPhone'ga o'rnatish", iosSteps: ["Safari brauzerida oching", "Pastdagi <b>Ulashish</b> ⬆️ tugmasini bosing", "<b>«Ekranga qo'shish»</b> (Add to Home Screen) ni tanlang", "<b>Qo'shish</b> tugmasini bosing — tayyor!"],
+    andTitle: "Android'ga o'rnatish", andSteps: ["Chrome brauzerida oching", "Yuqoridagi <b>⋮</b> menyuni bosing", "<b>«Ilovani o'rnatish»</b> ni tanlang", "Tasdiqlang — ilova ekranda paydo bo'ladi"],
+    installed: "Ilova o'rnatilgan ✅", sajda: "Sajda oyati",
+  },
+  ru: {
+    brand: "Проект Эркинова", title: "Священный Коран", subtitle: "3D мусхаф · перевод на узбекский и русский",
+    start: "Начать чтение", continueFrom: "Продолжить со стр. {p}", fromStart: "С начала",
+    next: "Далее", prev: "Назад", surahs: "Суры", juzs: "Джузы", bookmarks: "Закладки",
+    search: "Название или номер суры...", settings: "Настройки", language: "Язык", view: "Вид",
+    both: "Араб + перевод", trOnly: "Перевод", fontSize: "Размер шрифта", sound: "Звук страниц",
+    lampLabel: "Лампа", bookmarkThis: "Добавить закладку", installText: "Установить как приложение",
+    install: "📲 Установить", copy: "Копировать", markHere: "📍 Я остановился здесь",
+    sourceNote: "Переводы: Мухаммад Содик Мухаммад Юсуф (uz), Э. Кулиев (ru)",
+    page: "стр.", juz: "джуз", ayahs: "аятов", meccan: "Мекканская", medinan: "Мединская",
+    loading: "Загрузка...", loadErr: "Проверьте подключение к интернету", retry: "Повторить",
+    today: "Сегодня", total: "Всего прочитано", left: "До хатма",
+    tgTitle: "🔔 Напоминание в Telegram", tgWebText: "Подключите Telegram-бота: он будет каждый день напоминать, где вы остановились, а прогресс синхронизируется с сайтом.",
+    tgConnect: "Подключить Telegram", tgInText: "Напоминаю каждый день в это время (Ташкент):",
+    remindOn: "Напоминание включено", remindOff: "Напоминание выключено",
+    savedPlace: "📍 Место сохранено", bookmarked: "🔖 Закладка добавлена", unbookmarked: "Закладка удалена",
+    copied: "Скопировано", noMarks: "Закладок пока нет", lampOn: "💡 Лампа включена", lampOff: "Лампа выключена",
+    welcomeBack: "С возвращением! Вы на стр. {p}", readStat: "📚 Прочитано {n} стр. · вы на стр. {p}",
+    iosTitle: "Установка на iPhone", iosSteps: ["Откройте в Safari", "Нажмите <b>Поделиться</b> ⬆️ внизу", "Выберите <b>«На экран Домой»</b>", "Нажмите <b>Добавить</b> — готово!"],
+    andTitle: "Установка на Android", andSteps: ["Откройте в Chrome", "Нажмите меню <b>⋮</b> сверху", "Выберите <b>«Установить приложение»</b>", "Подтвердите — иконка появится на экране"],
+    installed: "Приложение установлено ✅", sajda: "Аят земного поклона",
+  },
+};
+
+export function tr(lang, key, vars = {}) {
+  let s = (STR[lang] || STR.uz)[key] ?? STR.uz[key] ?? key;
+  if (typeof s === "string") for (const [k, v] of Object.entries(vars)) s = s.replace(`{${k}}`, v);
+  return s;
+}

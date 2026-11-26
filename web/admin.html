@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin panel — Qur'on · Erkinov loyihasi</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --gold:#d4af37; --gold2:#f3d98b; --line:rgba(212,175,55,.3); --card:rgba(255,255,255,.045); --txt:#f3ead0; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:Manrope,system-ui,sans-serif; color:var(--txt); min-height:100vh;
+    background: radial-gradient(900px 500px at 10% -10%, #145a4b, transparent 60%), linear-gradient(180deg,#072f28,#03140f); }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
+  header { display:flex; align-items:center; gap:12px; margin-bottom:22px; }
+  header img { width:44px; height:44px; border-radius:12px; }
+  header h1 { margin:0; font-size:20px; } header small { opacity:.65; display:block; font-weight:600; }
+  .badge { margin-left:auto; padding:6px 12px; border-radius:99px; font-size:12px; font-weight:800; text-transform:uppercase;
+    color:#2a1f05; background:linear-gradient(135deg,#fff0b5,var(--gold)); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:18px; margin-bottom:16px; }
+  .card h2 { margin:0 0 14px; font-size:16px; display:flex; align-items:center; gap:8px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+  .stat { padding:16px; border-radius:16px; background:rgba(0,0,0,.25); border:1px solid rgba(212,175,55,.18); }
+  .stat b { display:block; font-size:28px; color:var(--gold2); } .stat span { font-size:12px; opacity:.75; }
+  textarea, input[type=text], input[type=password], select { width:100%; padding:12px 14px; border-radius:12px;
+    border:1px solid var(--line); background:rgba(0,0,0,.28); outline:none; }
+  textarea { min-height:140px; resize:vertical; line-height:1.5; }
+  textarea:focus, input:focus, select:focus { border-color:var(--gold); }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+  .btn { padding:11px 18px; border-radius:12px; border:1px solid var(--line); background:rgba(255,255,255,.06); font-weight:700; cursor:pointer; }
+  .btn.gold { background:linear-gradient(135deg,#fff0b5,var(--gold) 50%,#b58c1e); color:#2a1f05; border:0; }
+  .btn:disabled { opacity:.5; cursor:default; }
+  label.chk { display:flex; align-items:center; gap:8px; font-size:14px; }
+  .preview { margin-top:12px; padding:12px 14px; border-radius:14px 14px 14px 4px; background:#1f2c33; max-width:420px; white-space:pre-wrap; line-height:1.5; font-size:14px; }
+  .preview .tgbtn { display:block; margin-top:10px; text-align:center; padding:8px; border-radius:8px; background:rgba(255,255,255,.1); font-weight:700; font-size:13px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { text-align:left; padding:9px 8px; border-bottom:1px solid rgba(212,175,55,.12); white-space:nowrap; }
+  th { opacity:.65; font-weight:700; } .tbl { overflow:auto; }
+  .pill { padding:2px 8px; border-radius:99px; font-size:11px; font-weight:800; background:rgba(255,255,255,.1); }
+  .pill.ok { background:rgba(80,200,120,.2); color:#9ff0b7; } .pill.no { background:rgba(255,90,90,.18); color:#ffb3b3; }
+  .bar { height:6px; border-radius:6px; background:rgba(255,255,255,.1); overflow:hidden; min-width:90px; }
+  .bar span { display:block; height:100%; background:linear-gradient(90deg,#9c7a1e,var(--gold2)); }
+  #login { max-width:380px; margin:12vh auto 0; text-align:center; }
+  #login img { width:84px; border-radius:20px; margin-bottom:10px; }
+  .err { color:#ffb3b3; min-height:20px; font-size:14px; margin-top:8px; }
+  .muted { opacity:.65; font-size:13px; }
+  .two { display:grid; grid-template-columns:1.2fr 1fr; gap:16px; } @media (max-width:820px){ .two{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section id="login" class="card" hidden>
+    <img src="/icons/icon-192.png" alt="">
+    <h2 style="justify-content:center">👑 Admin panel</h2>
+    <p class="muted">Qur'on · Erkinov loyihasi</p>
+    <input type="password" id="pw" placeholder="Parol" autocomplete="current-password">
+    <div class="row" style="justify-content:center"><button class="btn gold" id="loginBtn">Kirish</button></div>
+    <div class="err" id="loginErr"></div>
+  </section>
+
+  <section id="panel" hidden>
+    <header>
+      <img src="/icons/icon-192.png" alt="">
+      <div><h1>Admin panel</h1><small id="botName">Qur'on boti</small></div>
+      <span class="badge">Erkinov loyihasi</span>
+      <button class="btn" id="logout">Chiqish</button>
+    </header>
+
+    <div class="card">
+      <h2>📊 Statistika <button class="btn" id="refresh" style="margin-left:auto;padding:6px 12px">↻</button></h2>
+      <div class="grid" id="stats"></div>
+    </div>
+
+    <div class="two">
+      <div class="card">
+        <h2>📣 Foydalanuvchilarga xabar yuborish</h2>
+        <textarea id="msg" placeholder="Xabar matni... **qalin** va __kursiv__ ishlatish mumkin"></textarea>
+        <div class="row">
+          <select id="target" style="width:auto">
+            <option value="all">Hammaga</option>
+            <option value="uz">Faqat o'zbekcha</option>
+            <option value="ru">Faqat ruscha</option>
+            <option value="admins">Faqat adminlarga (sinov)</option>
+          </select>
+          <label class="chk"><input type="checkbox" id="withBtn" checked> "📖 Qur'onni ochish" tugmasi</label>
+        </div>
+        <div class="preview" id="preview"></div>
+        <div class="row"><button class="btn gold" id="send">📤 Yuborish</button><span class="muted" id="sendInfo"></span></div>
+      </div>
+      <div class="card">
+        <h2>🕘 Yuborilgan xabarlar</h2>
+        <div id="history" class="muted">—</div>
+        <h2 style="margin-top:22px">🔔 Eslatmani sinash</h2>
+        <p class="muted">Tanlangan soatga eslatma qo'ygan (bugun hali eslatma olmagan) foydalanuvchilarga eslatmani hozir yuboradi.</p>
+        <div class="row"><select id="hour" style="width:auto"></select><button class="btn" id="remindNow">Hozir yuborish</button><span class="muted" id="remindInfo"></span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>👥 Foydalanuvchilar</h2>
+      <div class="row" style="margin-top:0"><input type="text" id="q" placeholder="Ism, username yoki ID bo'yicha qidirish" style="flex:1"><button class="btn" id="more">Yana 50 ta</button></div>
+      <div class="tbl" style="margin-top:10px"><table>
+        <thead><tr><th>Ism</th><th>Manba</th><th>Til</th><th>Sahifa</th><th>O'qigan</th><th>Eslatma</th><th>Holat</th><th>Oxirgi faollik</th></tr></thead>
+        <tbody id="users"></tbody>
+      </table></div>
+    </div>
+  </section>
+</div>
+<script>
+const $ = (s) => document.querySelector(s);
+let token = localStorage.getItem("q:adminToken") || "";
+let offset = 0;
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+async function api(path, body) {
+  const r = await fetch(path, {
+    method: body ? "POST" : "GET",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (r.status === 401) { showLogin(); throw new Error("401"); }
+  return r.json();
+}
+function showLogin() { $("#login").hidden = false; $("#panel").hidden = true; }
+function showPanel() { $("#login").hidden = true; $("#panel").hidden = false; loadAll(); }
+
+$("#loginBtn").onclick = async () => {
+  $("#loginErr").textContent = "";
+  const r = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: $("#pw").value }) });
+  const j = await r.json();
+  if (j.token) { token = j.token; localStorage.setItem("q:adminToken", token); showPanel(); }
+  else $("#loginErr").textContent = "Parol noto'g'ri";
+};
+$("#pw").onkeydown = (e) => { if (e.key === "Enter") $("#loginBtn").click(); };
+$("#logout").onclick = () => { token = ""; localStorage.removeItem("q:adminToken"); showLogin(); };
+
+async function loadStats() {
+  const s = await api("/api/admin/stats");
+  $("#botName").textContent = s.bot_username ? "@" + s.bot_username : "Bot ulanmagan (BOT_TOKEN yo'q)";
+  const items = [
+    ["Jami foydalanuvchi", s.total], ["Telegram", s.telegram], ["Faol (bloklamagan)", s.telegram_active],
+    ["Sayt (anonim)", s.web], ["Bugun o'qiganlar", s.today_readers], ["Bugun o'qilgan sahifa", s.today_pages],
+    ["🇺🇿 O'zbekcha", s.uz], ["🇷🇺 Ruscha", s.ru], ["Eslatma yoqilgan", s.reminders],
+  ];
+  $("#stats").innerHTML = items.map(([k, v]) => `<div class="stat"><b>${v}</b><span>${k}</span></div>`).join("");
+}
+async function loadHistory() {
+  const { broadcasts } = await api("/api/admin/broadcasts");
+  if (!broadcasts.length) { $("#history").textContent = "Hali xabar yuborilmagan"; return false; }
+  let active = false;
+  $("#history").innerHTML = `<table><tr><th>Sana</th><th>Kimga</th><th>Holat</th><th></th></tr>${broadcasts.map((b) => {
+    if (b.status !== "done") active = true;
+    const pct = b.total ? Math.round(((b.sent + b.failed) / b.total) * 100) : (b.status === "done" ? 100 : 0);
+    return `<tr title="${esc(b.text)}"><td>${esc(b.created_at.slice(5, 16))}</td><td>${esc(b.target)}</td>
+      <td>✅ ${b.sent} · ❌ ${b.failed} / ${b.total}</td><td><div class="bar"><span style="width:${pct}%"></span></div></td></tr>`;
+  }).join("")}</table>`;
+  return active;
+}
+async function loadUsers(append) {
+  if (!append) offset = 0;
+  const { users } = await api(`/api/admin/users?q=${encodeURIComponent($("#q").value)}&offset=${offset}`);
+  const rows = users.map((u) => `<tr>
+    <td>${esc(u.first_name || "—")} ${u.username ? `<span class="muted">@${esc(u.username)}</span>` : ""} ${u.is_admin ? "👑" : ""}</td>
+    <td>${u.tg_id ? (u.source === "miniapp" ? "Mini ilova" : "Bot") : "Sayt"}</td>
+    <td>${esc(u.lang)}</td><td>${u.page}</td><td>${u.pages_read}</td>
+    <td>${u.tg_id ? (u.remind ? `🔔 ${String(u.remind_hour).padStart(2, "0")}:00` : "—") : ""}</td>
+    <td>${u.tg_id ? (u.blocked ? '<span class="pill no">bloklagan</span>' : '<span class="pill ok">faol</span>') : ""}</td>
+    <td>${esc((u.updated_at || "").slice(0, 16))}</td></tr>`).join("");
+  $("#users").innerHTML = append ? $("#users").innerHTML + rows : rows || `<tr><td colspan="8" class="muted">Topilmadi</td></tr>`;
+  offset += users.length;
+}
+let poll;
+async function loadAll() {
+  try { await Promise.all([loadStats(), loadUsers(false)]); pollHistory(); } catch {}
+}
+async function pollHistory() {
+  clearTimeout(poll);
+  const active = await loadHistory().catch(() => false);
+  if (active) poll = setTimeout(() => { pollHistory(); loadStats(); }, 2000);
+}
+function renderPreview() {
+  let s = esc($("#msg").value || "Xabar ko'rinishi shu yerda");
+  s = s.replace(/\*\*(.+?)\*\*/gs, "<b>$1</b>").replace(/__(.+?)__/gs, "<i>$1</i>");
+  $("#preview").innerHTML = s + ($("#withBtn").checked ? `<span class="tgbtn">📖 Qur'onni ochish</span>` : "");
+}
+$("#msg").oninput = renderPreview; $("#withBtn").onchange = renderPreview;
+$("#send").onclick = async () => {
+  const text = $("#msg").value.trim();
+  if (!text) return;
+  const target = $("#target").selectedOptions[0].textContent;
+  if (!confirm(`Xabar "${target}" ga yuborilsinmi?`)) return;
+  $("#send").disabled = true;
+  try {
+    const r = await api("/api/admin/broadcast", { text, target: $("#target").value, with_button: $("#withBtn").checked });
+    if (r.id) { $("#sendInfo").textContent = "Yuborilmoqda..."; $("#msg").value = ""; renderPreview(); pollHistory(); }
+    else $("#sendInfo").textContent = "Xato: " + (r.error || "");
+  } finally { $("#send").disabled = false; }
+};
+for (let h = 0; h < 24; h++) $("#hour").insertAdjacentHTML("beforeend", `<option value="${h}" ${h === 20 ? "selected" : ""}>${String(h).padStart(2, "0")}:00</option>`);
+$("#remindNow").onclick = async () => {
+  const r = await api("/api/admin/remind", { hour: Number($("#hour").value) });
+  $("#remindInfo").textContent = `Yuborildi: ${r.sent}`;
+};
+$("#refresh").onclick = loadAll;
+let qt; $("#q").oninput = () => { clearTimeout(qt); qt = setTimeout(() => loadUsers(false), 300); };
+$("#more").onclick = () => loadUsers(true);
+renderPreview();
+token ? showPanel() : showLogin();
+</script>
+</body>
+</html>

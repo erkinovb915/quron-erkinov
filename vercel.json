@@ -1,0 +1,8 @@
+{
+  "outputDirectory": "web",
+  "buildCommand": "",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://quron-erkinov.onrender.com/api/:path*" },
+    { "source": "/admin", "destination": "/admin.html" }
+  ]
+}
