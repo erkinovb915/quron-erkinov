@@ -289,6 +289,8 @@ class CachedStatic(StaticFiles):
             resp.headers["Cache-Control"] = "no-cache"
         elif resp.status_code == 200:
             resp.headers["Cache-Control"] = "public, max-age=3600"
+        if path.startswith("icons/"):
+            resp.headers["Access-Control-Allow-Origin"] = "*"
         return resp
 
 
