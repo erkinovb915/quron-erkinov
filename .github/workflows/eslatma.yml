@@ -1,5 +1,5 @@
 # Render bepul serveri uxlab qolmasligi va kundalik eslatmalar o'z vaqtida ketishi uchun
-# har 10 daqiqada serverni "uyg'otadi". Repo Settings → Secrets: SITE_URL va CRON_KEY qo'shing.
+# har 10 daqiqada serverni "uyg'otadi".
 name: Kundalik eslatma
 on:
   schedule:
@@ -10,4 +10,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Serverni uyg'otish va eslatma yuborish
-        run: curl -fsS --retry 3 --max-time 60 "${{ secrets.SITE_URL }}/api/cron?key=${{ secrets.CRON_KEY }}" || true
+        run: curl -fsS --retry 3 --max-time 90 "https://quron-erkinov.onrender.com/api/cron" || true

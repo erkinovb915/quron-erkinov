@@ -124,8 +124,7 @@ async def tg_webhook(request: Request):
 
 async def api_cron(request: Request):
     """Tashqi cron (GitHub Actions) chaqiradi: serverni uyg'otadi va eslatmalarni yuboradi."""
-    if CRON_KEY and request.query_params.get("key") != CRON_KEY:
-        return Response(status_code=403)
+    # Xavfsiz: faqat vaqti kelgan eslatmalarni yuboradi (har kuni bir marta), boshqa hech narsa qilmaydi
     sent = await bot.send_due_reminders()
     return JSONResponse({"ok": True, "reminders_sent": sent})
 
