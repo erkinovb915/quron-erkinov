@@ -404,7 +404,7 @@ body.dark .tr b { color: var(--gold); }
 /* Pastki panel */
 .bottombar { position: relative; z-index: 20; padding: 0 12px calc(10px + var(--safe-bottom)); }
 .progress-line { height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .1); overflow: hidden; margin: 0 4px 8px; }
-.progress-line span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--gold-3), var(--gold-2)); transition: width .4s; float: right; }
+.progress-line span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--gold-3), var(--gold-2)); transition: width .4s; }
 .bb-row { display: flex; align-items: center; gap: 10px; }
 .bb-today { font-size: 12px; font-weight: 700; opacity: .85; white-space: nowrap; }
 #pageSlider { flex: 1; accent-color: var(--gold); height: 28px; }
@@ -559,3 +559,22 @@ body.dark .sheet-card { background: linear-gradient(180deg, #0b1a17, #050c0a); }
 .sub-list a { display: block; padding: 12px; border-radius: 12px; background: #2aabee; color: #fff; font-weight: 700; text-decoration: none; }
 body.dragging, body.dragging * { user-select: none; -webkit-user-select: none; cursor: grabbing; }
 .stage, .page-body { touch-action: pan-y; }
+
+/* ---------- Sahifa raqamlari (1 2 3 4 5) ---------- */
+.pager { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; }
+.pg-nums { flex: 1; display: flex; justify-content: center; gap: 5px; min-width: 0; }
+.pg-arrow, .pg-num {
+  height: 40px; min-width: 40px; padding: 0 8px; border-radius: 12px;
+  background: var(--ui-bg); border: 1px solid var(--ui-line);
+  font-weight: 800; font-size: 15px; display: inline-flex; align-items: center; justify-content: center;
+  transition: transform .12s, background .2s;
+}
+.pg-arrow { font-size: 26px; line-height: 1; padding-bottom: 3px; min-width: 52px; background: linear-gradient(135deg, rgba(21,107,88,.9), rgba(7,47,40,.9)); }
+.pg-num.active { background: linear-gradient(135deg, #fff0b5, var(--gold) 50%, #b58c1e); color: #2a1f05; border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 6px 14px -6px rgba(212,175,55,.9); }
+.pg-arrow:active, .pg-num:active { transform: scale(.92); }
+.pg-arrow:disabled { opacity: .35; }
+@media (max-width: 380px) { .pg-num { min-width: 34px; padding: 0 4px; font-size: 13px; } .pg-arrow { min-width: 44px; } }
+
+.goto-row { display: flex; gap: 8px; align-items: center; }
+.goto-row .search { margin: 0; font-size: 18px; font-weight: 800; text-align: center; }
+.goto-quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; justify-content: center; }

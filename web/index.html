@@ -125,9 +125,14 @@
 
   <footer class="bottombar">
     <div class="progress-line"><span id="progressFill"></span></div>
+    <nav class="pager" id="pager" aria-label="Sahifalar">
+      <button class="pg-arrow" id="pgPrev" aria-label="Oldingi">‹</button>
+      <div class="pg-nums" id="pgNums"></div>
+      <button class="pg-arrow" id="pgNext" aria-label="Keyingi">›</button>
+    </nav>
     <div class="bb-row">
       <span class="bb-today" id="bbToday">📅 0</span>
-      <input type="range" id="pageSlider" min="1" max="604" value="1" dir="rtl" aria-label="Sahifa">
+      <input type="range" id="pageSlider" min="1" max="604" value="1" aria-label="Sahifa">
       <button class="page-chip" id="btnGoto"><span id="pageNum">1</span>/604</button>
     </div>
   </footer>
@@ -191,6 +196,24 @@
       <button class="btn btn-gold btn-small" id="btnInstall" data-i18n="install">📲 O'rnatish</button>
     </div>
     <p class="foot-note">Erkinov loyihasi · <span data-i18n="sourceNote">Tarjimalar: Muhammad Sodiq Muhammad Yusuf (uz), E. Kuliyev (ru)</span></p>
+  </div>
+</div>
+
+<div class="sheet" id="sheetGoto" hidden>
+  <div class="sheet-card">
+    <div class="sheet-head">
+      <h3 data-i18n="gotoTitle">Sahifaga o'tish</h3>
+      <button class="icon-btn close" data-close aria-label="Yopish">✕</button>
+    </div>
+    <div class="goto-row">
+      <input class="search" id="gotoInput" type="number" inputmode="numeric" min="1" max="604" placeholder="1 – 604">
+      <button class="btn btn-gold" id="gotoBtn" data-i18n="go">O'tish</button>
+    </div>
+    <div class="goto-quick" id="gotoQuick">
+      <button class="chip" data-p="1">1</button><button class="chip" data-p="50">50</button><button class="chip" data-p="100">100</button>
+      <button class="chip" data-p="200">200</button><button class="chip" data-p="300">300</button><button class="chip" data-p="400">400</button>
+      <button class="chip" data-p="500">500</button><button class="chip" data-p="604">604</button>
+    </div>
   </div>
 </div>
 

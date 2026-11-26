@@ -9,7 +9,10 @@ async function getJSON(url, tries = 3) {
   let lastErr;
   for (let i = 0; i < tries; i++) {
     try {
-      const r = await fetch(url);
+      // 12 soniyada javob kelmasa — qayta urinamiz (aks holda sahifa "qotib" qoladi)
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 12000);
+      const r = await fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(timer));
       if (!r.ok) throw new Error("HTTP " + r.status);
       const j = await r.json();
       if (j.code !== 200) throw new Error(j.status || "API");

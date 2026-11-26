@@ -33,6 +33,8 @@ const S = {
   busy: false,
   current: [],
   ready: new Map(),
+  inflight: 0,
+  pending: null,
   justDragged: 0,
 };
 if (!S.webId) {
@@ -137,6 +139,7 @@ function applyI18n() {
   $$("[data-lang]").forEach((b) => b.classList.toggle("active", b.dataset.lang === S.lang));
   $$("#segLang button").forEach((b) => b.classList.toggle("active", b.dataset.v === S.lang));
   updateIntro();
+  updateToday();
 }
 function setLang(lang, rerender = true) {
   if (!STR[lang]) return;
@@ -144,7 +147,7 @@ function setLang(lang, rerender = true) {
   store.set("lang", lang);
   applyI18n();
   renderTgBox();
-  if (rerender && document.body.classList.contains("reading")) renderPage(S.page, null);
+  if (rerender && document.body.classList.contains("reading")) renderPage(targetPage(), null);
   else updateHeader();
 }
 
@@ -268,6 +271,20 @@ function updateHeader() {
   $("#pageNum").textContent = page;
   $("#pageSlider").value = page;
   $("#progressFill").style.width = `${(page / TOTAL) * 100}%`;
+  renderPager(page);
+}
+
+// Pastdagi raqamli sahifalar: joriy sahifa o'rtada
+function renderPager(page) {
+  const count = innerWidth < 380 ? 4 : 5;
+  let start = Math.max(1, page - Math.floor(count / 2));
+  const end = Math.min(TOTAL, start + count - 1);
+  start = Math.max(1, end - count + 1);
+  let html = "";
+  for (let p = start; p <= end; p++) html += `<button class="pg-num${p === page ? " active" : ""}" data-p="${p}">${p}</button>`;
+  $("#pgNums").innerHTML = html;
+  $("#pgPrev").disabled = page <= 1;
+  $("#pgNext").disabled = page >= TOTAL;
 }
 function updateToday() {
   const n = S.user?.today ?? 0;
@@ -299,29 +316,71 @@ function commitPage(page, ayahs) {
   history.replaceState(null, "", `?p=${page}`);
 }
 
+// Qotib qolgan varaqni tozalash (har ehtimolga qarshi)
+function resetFlip() {
+  $$(".leaf, .under-shade").forEach((e) => e.remove());
+  document.body.classList.remove("dragging");
+  S.busy = false;
+  S.inflight = 0;
+}
+
+// Hozir qaysi sahifaga ketyapmiz (varaq aylanayotgan bo'lsa ham to'g'ri hisoblash uchun)
+function targetPage() {
+  if (S.pending) return S.pending.page;
+  if (S.busy && S.inflight) return S.inflight;
+  return S.page;
+}
+
 async function renderPage(page, dir) {
   page = Math.max(1, Math.min(TOTAL, page));
-  if (S.busy) return;
-  S.busy = true;
-  const pageEl = $("#page");
-  const prevHTML = pageEl.innerHTML;
-  let ayahs = null;
-  let html;
-  const loader = setTimeout(() => { if (!dir) pageEl.innerHTML = loadingHTML(); }, 150);
-  try {
-    if (!dir) S.ready.delete(`${page}:${S.lang}:${S.mode}`); // rejim/til o'zgarganda yangidan chizamiz
-    const prepared = await preparePage(page);
-    ayahs = prepared.ayahs;
-    html = prepared.html;
-  } catch {
-    html = errorHTML(page);
+  if (S.busy) {
+    // Band bo'lsa — so'rovni eslab qolamiz, tugagach bajariladi
+    S.pending = { page, dir, force: !dir };
+    if (performance.now() - (S.busySince || 0) > 6000) resetFlip(); else return;
   }
-  clearTimeout(loader);
+  S.busy = true;
+  S.busySince = performance.now();
+  S.inflight = page;
+  const pageEl = $("#page");
+  try {
+    const prevHTML = pageEl.innerHTML;
+    let ayahs = null;
+    let html;
+    const loader = setTimeout(() => { if (!dir || !prevHTML) pageEl.innerHTML = loadingHTML(); }, 150);
+    try {
+      if (!dir) S.ready.delete(`${page}:${S.lang}:${S.mode}`); // rejim/til o'zgarganda yangidan chizamiz
+      const prepared = await preparePage(page);
+      ayahs = prepared.ayahs;
+      html = prepared.html;
+    } catch {
+      html = errorHTML(page);
+    }
+    clearTimeout(loader);
+    try {
+      if (dir && prevHTML && !document.hidden) await flipAnimation(prevHTML, html, dir);
+      else pageEl.innerHTML = html;
+    } catch {
+      resetFlip();
+      pageEl.innerHTML = html;
+    }
+    commitPage(page, ayahs);
+  } catch (err) {
+    console.error(err);
+    resetFlip();
+  } finally {
+    S.busy = false;
+    S.inflight = 0;
+  }
+  flushPending();
+}
 
-  if (dir && prevHTML) await flipAnimation(prevHTML, html, dir);
-  else pageEl.innerHTML = html;
-  commitPage(page, ayahs);
-  S.busy = false;
+// Navbatda turgan so'rovni bajarish (varaq aylanib bo'lgach)
+function flushPending() {
+  if (!S.pending || S.busy) return;
+  const next = S.pending;
+  S.pending = null;
+  if (next.page !== S.page) renderPage(next.page, next.page > S.page ? 1 : -1);
+  else if (next.force) renderPage(next.page, null);
 }
 
 // ---------------- 3D varaq ----------------
@@ -367,12 +426,17 @@ function makeLeaf(oldHTML, newHTML, forward) {
       const t0 = performance.now();
       const dur = Math.max(120, ms * Math.abs(target - from));
       const ease = easeInOut ? (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2) : (x) => 1 - Math.pow(1 - x, 3);
+      let done = false;
+      const finishNow = () => { if (done) return; done = true; set(target); resolve(); };
+      // requestAnimationFrame to'xtab qolsa ham (ilova fonda) animatsiya baribir tugaydi
+      const safety = setTimeout(finishNow, dur + 400);
       function frame(now) {
+        if (done) return;
         const x = Math.min(1, (now - t0) / dur);
         set(from + (target - from) * ease(x));
-        if (x < 1) requestAnimationFrame(frame); else resolve();
+        if (x < 1) requestAnimationFrame(frame); else { clearTimeout(safety); finishNow(); }
       }
-      requestAnimationFrame(frame);
+      if (document.hidden) finishNow(); else requestAnimationFrame(frame);
     });
   }
   async function finish(complete, ms = 650, easeInOut = false) {
@@ -393,15 +457,16 @@ async function flipAnimation(oldHTML, newHTML, dir) {
 }
 
 function go(delta) {
-  const target = S.page + delta;
+  const target = targetPage() + delta;
   if (target < 1 || target > TOTAL) { haptic("rigid"); return; }
   $("#ayahPop").hidden = true;
   renderPage(target, delta);
 }
 function goTo(page) {
   page = Math.max(1, Math.min(TOTAL, page | 0));
-  if (page === S.page) return;
-  renderPage(page, page > S.page ? 1 : -1);
+  if (page === targetPage()) return;
+  $("#ayahPop").hidden = true;
+  renderPage(page, page > targetPage() ? 1 : -1);
 }
 
 // ---------------- oyat oynasi ----------------
@@ -586,12 +651,15 @@ function bind() {
   $$("[data-lang]").forEach((b) => (b.onclick = () => { store.set("langChosen", true); setLang(b.dataset.lang); api("/api/settings", { lang: b.dataset.lang }); }));
 
   $("#btnHome").onclick = showIntro;
+  $("#pgPrev").onclick = () => go(-1);
+  $("#pgNext").onclick = () => go(1);
+  $("#pgNums").onclick = (e) => { const p = e.target.closest("[data-p]"); if (p) goTo(parseInt(p.dataset.p, 10)); };
   $("#btnNext").onclick = () => go(1);
   $("#btnPrev").onclick = () => go(-1);
   $("#btnTheme").onclick = () => { S.dark = !S.dark; store.set("dark", S.dark); applyLook(); haptic(); };
   $("#btnMode").onclick = () => {
     S.mode = { ar: "both", both: "tr", tr: "ar" }[S.mode];
-    store.set("mode", S.mode); applyLook(); renderPage(S.page, null); haptic();
+    store.set("mode", S.mode); applyLook(); renderPage(targetPage(), null); haptic();
   };
   $("#lamp").onclick = () => setLamp(!S.lamp);
   $("#btnLamp").onclick = () => setLamp(!S.lamp);
@@ -600,9 +668,20 @@ function bind() {
   $("#btnSurahs").onclick = () => { renderList(); openSheet("#sheetSurahs"); };
   $("#btnMenu").onclick = () => { renderStats(); renderTgBox(); $("#installRow").hidden = !!isStandalone() || IN_TG; openSheet("#sheetMenu"); };
   $("#btnGoto").onclick = () => {
-    const v = prompt(`1–${TOTAL}`, S.page);
-    if (v) goTo(parseInt(v, 10));
+    $("#gotoInput").value = S.page;
+    openSheet("#sheetGoto");
+    setTimeout(() => { $("#gotoInput").focus(); $("#gotoInput").select(); }, 150);
   };
+  const doGoto = () => {
+    const v = parseInt($("#gotoInput").value, 10);
+    if (!v || v < 1 || v > TOTAL) { toast(`1 – ${TOTAL}`); return; }
+    closeSheet($("#sheetGoto"));
+    $("#gotoInput").blur();
+    goTo(v);
+  };
+  $("#gotoBtn").onclick = doGoto;
+  $("#gotoInput").addEventListener("keydown", (e) => { if (e.key === "Enter") doGoto(); });
+  $("#gotoQuick").onclick = (e) => { const p = e.target.closest("[data-p]"); if (p) { $("#gotoInput").value = p.dataset.p; doGoto(); } };
   $("#btnInstall").onclick = doInstall;
   $("#btnBookmark").onclick = () => {
     const i = S.marks.findIndex((m) => m.page === S.page);
@@ -626,7 +705,7 @@ function bind() {
     goTo(parseInt(row.dataset.page, 10));
   };
   $("#segLang").onclick = (e) => { const v = e.target.dataset?.v; if (v) { store.set("langChosen", true); setLang(v); api("/api/settings", { lang: v }); } };
-  $("#segMode").onclick = (e) => { const v = e.target.dataset?.v; if (v) { S.mode = v; store.set("mode", v); applyLook(); renderPage(S.page, null); } };
+  $("#segMode").onclick = (e) => { const v = e.target.dataset?.v; if (v) { S.mode = v; store.set("mode", v); applyLook(); renderPage(targetPage(), null); } };
   $("#segFont").onclick = (e) => { const v = e.target.dataset?.v; if (v) { S.font = Math.max(-4, Math.min(8, S.font + Number(v))); store.set("font", S.font); applyLook(); } };
   $("#tgBox").addEventListener("click", async (e) => {
     const h = e.target.dataset?.hour;
@@ -700,6 +779,7 @@ function bind() {
       if (!ready) { drag = null; go(dir); return; }
       Object.assign(drag, { active: true, dir, target, ready, x0: e.clientX - Math.sign(dx) * 12 });
       S.busy = true;
+      S.busySince = performance.now();
       $("#ayahPop").hidden = true;
       document.body.classList.add("dragging");
       drag.leaf = makeLeaf($("#page").innerHTML, ready.html, dir > 0);
@@ -731,9 +811,17 @@ function bind() {
     const secs = (performance.now() - d.t0) / 1000;
     const moved = d.p - (d.p0 ?? 0);
     const complete = d.dir > 0 ? (d.p > 0.3 || (d.p > 0.08 && d.p / secs > 0.9)) : (d.p > 0.72 || (moved > 0.06 && moved / secs > 0.5));
-    await d.leaf.finish(complete, complete ? 520 : 380);
+    S.inflight = complete ? d.target : S.page; // aylanish paytida bosilgan tugmalar to'g'ri sahifadan hisoblansin
+    try {
+      await d.leaf.finish(complete, complete ? 520 : 380);
+    } catch {
+      resetFlip();
+      $("#page").innerHTML = complete ? d.ready.html : $("#page").innerHTML;
+    }
     if (complete) { haptic("light"); commitPage(d.target, d.ready.ayahs); }
     S.busy = false;
+    S.inflight = 0;
+    flushPending();
   };
   stage.addEventListener("pointerup", endDrag);
   stage.addEventListener("pointercancel", endDrag);
@@ -752,6 +840,19 @@ function bind() {
   addEventListener("resize", applyLook);
   document.addEventListener("visibilitychange", () => { if (document.hidden) saveProgress(S.progress.page, S.progress.surah, S.progress.ayah, true); });
 }
+
+// ---------------- qotib qolishdan himoya ----------------
+// Har soniyada tekshiramiz: biror narsa 7 soniyadan ko'p "band" bo'lib qolsa — tozalab, sahifani qayta chizamiz
+setInterval(() => {
+  if (!S.busy || performance.now() - (S.busySince || 0) < 7000) return;
+  resetFlip();
+  const p = S.page || S.progress.page || 1;
+  S.page = p;
+  renderPage(p, null);
+}, 1000);
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && $$(".leaf").length && !document.body.classList.contains("dragging")) resetFlip();
+});
 
 // ---------------- ishga tushirish ----------------
 async function init() {
