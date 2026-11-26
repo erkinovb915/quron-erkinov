@@ -24,10 +24,15 @@ T = {
             "• Arabcha matn, o'zbekcha va ruscha tarjima\n"
             "• Chiroq va tungi rejim\n"
             "• Qayerda qolganingizni eslab qoladi\n"
-            "• Har kuni o'qishni eslatib turaman\n\n"
+            "• Har kuni o'qishni eslatib turaman\n"
+            "• 🕌 Namoz vaqtlari va har namozda eslatma\n"
+            "• 📿 Tasbeh\n\n"
             "Pastdagi tugmani bosib o'qishni boshlang 👇"
         ),
         "open": "📖 Qur'onni ochish",
+        "prayer_btn": "🕌 Namoz vaqtlari",
+        "tasbih_btn": "📿 Tasbeh",
+        "tasbih_open": "📿 Tasbehni ochish uchun tugmani bosing 👇",
         "continue": "📖 {page}-sahifadan davom etish",
         "where": "📍 Qayerda qoldim",
         "remind": "🔔 Eslatma",
@@ -61,7 +66,7 @@ T = {
         "admin_bad": "Parol noto'g'ri.",
         "help": (
             "Buyruqlar:\n/start — bosh menyu\n/davom — qayerda qoldim\n"
-            "/eslatma — kundalik eslatma\n/til — tilni o'zgartirish"
+            "/namoz — namoz vaqtlari\n/tasbeh — tasbeh\n/eslatma — kundalik eslatma\n/til — tilni o'zgartirish"
         ),
         "stats": "📊 Foydalanuvchilar: {total} (Telegram: {telegram}, sayt: {web})\nBugun o'qiganlar: {today_readers}",
     },
@@ -72,10 +77,15 @@ T = {
             "• Арабский текст, перевод на узбекский и русский\n"
             "• Лампа и ночной режим\n"
             "• Запоминает, где вы остановились\n"
-            "• Каждый день напоминаю о чтении\n\n"
+            "• Каждый день напоминаю о чтении\n"
+            "• 🕌 Время намаза и напоминание о каждом намазе\n"
+            "• 📿 Тасбих\n\n"
             "Нажмите кнопку ниже, чтобы начать 👇"
         ),
         "open": "📖 Открыть Коран",
+        "prayer_btn": "🕌 Время намаза",
+        "tasbih_btn": "📿 Тасбих",
+        "tasbih_open": "📿 Нажмите кнопку, чтобы открыть тасбих 👇",
         "continue": "📖 Продолжить со стр. {page}",
         "where": "📍 Где я остановился",
         "remind": "🔔 Напоминание",
@@ -109,7 +119,7 @@ T = {
         "admin_bad": "Неверный пароль.",
         "help": (
             "Команды:\n/start — главное меню\n/davom — где я остановился\n"
-            "/eslatma — напоминание\n/til — сменить язык"
+            "/namoz — время намаза\n/tasbeh — тасбих\n/eslatma — напоминание\n/til — сменить язык"
         ),
         "stats": "📊 Пользователи: {total} (Telegram: {telegram}, сайт: {web})\nЧитали сегодня: {today_readers}",
     },

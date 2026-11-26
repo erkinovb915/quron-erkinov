@@ -1,5 +1,5 @@
 // Oflayn ishlash: ilova qobig'i va o'qilgan sahifalar keshda saqlanadi
-const SHELL = "quron-shell-v5";
+const SHELL = "quron-shell-v6";
 const DATA = "quron-data-v1";
 const ASSETS = ["/", "/index.html", "/img/star-tile.svg", "/img/medallion.svg", "/manifest.json", "/icons/icon-192.png"];
 
@@ -30,4 +30,22 @@ self.addEventListener("fetch", (e) => {
     if (res.ok) caches.open(SHELL).then((c) => c.put(e.request, res.clone()));
     return res;
   }).catch(() => caches.match(e.request, { ignoreSearch: true }).then((r) => r || caches.match("/"))));
+});
+
+// ---------- Bildirishnomalar (namoz vaqti, o'qish eslatmasi) ----------
+self.addEventListener("push", (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch { d = { title: "Qur'on", body: e.data && e.data.text() }; }
+  e.waitUntil(self.registration.showNotification(d.title || "Qur'oni Karim", {
+    body: d.body || "", icon: "/icons/icon-192.png", badge: "/icons/icon-192.png",
+    tag: d.tag || "quron", renotify: true, vibrate: [120, 60, 120], data: { url: d.url || "/" },
+  }));
+});
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = new URL(e.notification.data?.url || "/", self.location.origin).href;
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+    for (const c of list) { if ("focus" in c) { c.navigate(url).catch(() => {}); return c.focus(); } }
+    return self.clients.openWindow(url);
+  }));
 });

@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from . import db
 from . import telegram as tg
 from .texts import surah_name, t
+from . import prayer, notify
 
 log = logging.getLogger("bot")
 
@@ -32,6 +33,7 @@ def main_menu(user: dict, admin: bool = False) -> dict:
     rows = [
         [{"text": open_text, "web_app": {"url": app_url(page)}}],
         [{"text": t(lang, "where"), "callback_data": "where"}, {"text": t(lang, "remind"), "callback_data": "remind"}],
+        [{"text": t(lang, "prayer_btn"), "callback_data": "pr"}, {"text": t(lang, "tasbih_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=tasbih"}}],
         [{"text": t(lang, "lang"), "callback_data": "lang"}],
     ]
     if admin:
@@ -98,6 +100,67 @@ async def handle_update(update: dict):
                 await db.set_field(uid, "blocked", 0)
     except Exception:
         log.exception("update xatosi")
+
+
+# ---------- namoz vaqtlari ----------
+
+async def prayer_text(user: dict) -> str:
+    lang = user.get("lang") or "uz"
+    region = prayer.valid_region(user.get("region"))
+    now = datetime.now(TASHKENT)
+    day = await prayer.get_day(region, now.date())
+    names = prayer.NAMES.get(lang, prayer.NAMES["uz"])
+    now_min = now.hour * 60 + now.minute
+    nxt = None
+    for k in prayer.KEYS:
+        h, m = day["times"][k].split(":")
+        if int(h) * 60 + int(m) > now_min:
+            nxt = k
+            break
+    lines = []
+    icons = {"bomdod": "🌅", "quyosh": "☀️", "peshin": "🕛", "asr": "🌤", "shom": "🌇", "xufton": "🌙"}
+    for k in prayer.KEYS:
+        mark = " ◀️" if k == nxt else ""
+        tm = f"<b>{day['times'][k]}</b>" if k == nxt else day["times"][k]
+        lines.append(f"{icons[k]} {names[k]}: {tm}{mark}")
+    if nxt:
+        h, m = day["times"][nxt].split(":")
+        left = int(h) * 60 + int(m) - now_min
+        left_txt = (f"⏳ До {names[nxt]}: {left // 60} ч {left % 60} мин" if lang == "ru"
+                    else f"⏳ {names[nxt]}gacha: {left // 60} soat {left % 60} daqiqa")
+    else:
+        left_txt = "🌙 Хорошей ночи" if lang == "ru" else "🌙 Xayrli tun"
+    date_txt = now.strftime("%d.%m.%Y")
+    head = (f"🕌 <b>Время намаза — {prayer.region_name(region, lang)}</b>\n📅 {date_txt}" if lang == "ru"
+            else f"🕌 <b>Namoz vaqtlari — {prayer.region_name(region, lang)}</b>\n📅 {date_txt}")
+    on = bool(user.get("prayer_notify"))
+    rem = (("🔔 Напоминание: включено" if on else "🔕 Напоминание: выключено") if lang == "ru"
+           else ("🔔 Eslatma: yoqilgan" if on else "🔕 Eslatma: o'chirilgan"))
+    return f"{head}\n\n" + "\n".join(lines) + f"\n\n{left_txt}\n{rem}"
+
+
+def prayer_markup(user: dict) -> dict:
+    lang = user.get("lang") or "uz"
+    region = prayer.valid_region(user.get("region"))
+    on = bool(user.get("prayer_notify"))
+    if lang == "ru":
+        toggle = "🔕 Выключить напоминания" if on else "🔔 Включить напоминания"
+        reg = f"📍 Город: {prayer.region_name(region, lang)}"
+        app = "🕌 Открыть в приложении"
+    else:
+        toggle = "🔕 Eslatmani o'chirish" if on else "🔔 Har namozda eslatish"
+        reg = f"📍 Hudud: {prayer.region_name(region, lang)}"
+        app = "🕌 Ilovada ochish"
+    return {"inline_keyboard": [
+        [{"text": toggle, "callback_data": "prn"}],
+        [{"text": reg, "callback_data": "prr"}, {"text": "🔄", "callback_data": "pr:upd"}],
+        [{"text": app, "web_app": {"url": f"{PUBLIC_URL}/?view=prayer"}}],
+    ]}
+
+
+def region_markup(lang: str) -> dict:
+    btns = [{"text": (ru if lang == "ru" else uz), "callback_data": f"prr:{slug}"} for slug, uz, ru, _, _ in prayer.REGIONS]
+    return {"inline_keyboard": [btns[i:i + 3] for i in range(0, len(btns), 3)]}
 
 
 # Admin "keyingi xabarni kutish" holati: {tg_id: "broadcast" | "channel"}
@@ -209,6 +272,10 @@ async def _on_message(msg: dict):
         await tg.send(chat, remind_text(user), remind_markup(user))
     elif cmd in ("/til", "/lang"):
         await tg.send(chat, t(lang, "choose_lang"), LANG_MARKUP)
+    elif cmd in ("/namoz", "/prayer"):
+        await tg.send(chat, await prayer_text(user), prayer_markup(user))
+    elif cmd in ("/tasbeh", "/tasbih"):
+        await tg.send(chat, t(lang, "tasbih_open"), {"inline_keyboard": [[{"text": t(lang, "tasbih_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=tasbih"}}]]})
     elif cmd == "/stats" and admin:
         await tg.send(chat, t(lang, "stats", **(await db.stats())))
     elif cmd == "/xabar" and admin:
@@ -247,6 +314,40 @@ async def _on_callback(cq: dict):
         await tg.send(chat, subs.subscribe_text(lang), subs.subscribe_markup(missing, lang))
     elif data == "where":
         await tg.send(chat, await where_text(user), open_button(user))
+    elif data in ("pr", "pr:upd"):
+        if data == "pr":
+            await tg.send(chat, await prayer_text(user), prayer_markup(user))
+        else:
+            answer = "🔄"
+            try:
+                await tg.call("editMessageText", chat_id=chat, message_id=mid, text=await prayer_text(user),
+                              parse_mode="HTML", reply_markup=prayer_markup(user))
+            except tg.TgError:
+                pass
+    elif data == "prn":
+        await db.set_field(user["id"], "prayer_notify", 0 if user.get("prayer_notify") else 1)
+        user = await db.get_user(user["id"])
+        answer = ("🔔 Har namoz vaqtida eslataman" if user.get("prayer_notify") else "🔕 O'chirildi") if lang != "ru" else \
+                 ("🔔 Буду напоминать о каждом намазе" if user.get("prayer_notify") else "🔕 Выключено")
+        alert = True
+        try:
+            await tg.call("editMessageText", chat_id=chat, message_id=mid, text=await prayer_text(user),
+                          parse_mode="HTML", reply_markup=prayer_markup(user))
+        except tg.TgError:
+            pass
+    elif data == "prr":
+        await tg.send(chat, "📍 Hududingizni tanlang:" if lang != "ru" else "📍 Выберите город:", region_markup(lang))
+    elif data.startswith("prr:"):
+        await db.set_field(user["id"], "region", prayer.valid_region(data[4:]))
+        if not user.get("prayer_notify"):
+            await db.set_field(user["id"], "prayer_notify", 1)
+        user = await db.get_user(user["id"])
+        answer = "✅"
+        try:
+            await tg.call("editMessageText", chat_id=chat, message_id=mid, text=await prayer_text(user),
+                          parse_mode="HTML", reply_markup=prayer_markup(user))
+        except tg.TgError:
+            await tg.send(chat, await prayer_text(user), prayer_markup(user))
     elif data == "remind":
         await tg.send(chat, remind_text(user), remind_markup(user))
     elif data == "lang":
@@ -329,8 +430,10 @@ def _esc(s: str) -> str:
 # ---------- sozlash ----------
 
 COMMANDS = {
-    "uz": [("start", "Bosh menyu"), ("davom", "Qayerda qoldim"), ("eslatma", "Kundalik eslatma"), ("til", "Tilni o'zgartirish")],
-    "ru": [("start", "Главное меню"), ("davom", "Где я остановился"), ("eslatma", "Напоминание"), ("til", "Сменить язык")],
+    "uz": [("start", "Bosh menyu"), ("namoz", "🕌 Namoz vaqtlari"), ("davom", "Qayerda qoldim"), ("tasbeh", "📿 Tasbeh"),
+           ("eslatma", "Kundalik eslatma"), ("til", "Tilni o'zgartirish")],
+    "ru": [("start", "Главное меню"), ("namoz", "🕌 Время намаза"), ("davom", "Где я остановился"), ("tasbeh", "📿 Тасбих"),
+           ("eslatma", "Напоминание"), ("til", "Сменить язык")],
 }
 
 
@@ -401,6 +504,7 @@ async def send_due_reminders(force_hour: int | None = None) -> int:
 
 
 async def reminder_loop():
+    last_prefetch = 0.0
     while True:
         try:
             n = await send_due_reminders()
@@ -408,7 +512,23 @@ async def reminder_loop():
                 log.info("Eslatma yuborildi: %s", n)
         except Exception:
             log.exception("eslatma xatosi")
-        await asyncio.sleep(60)
+        try:
+            await notify.prayer_tick(open_button=open_button)
+            await notify.daily_push_tick()
+        except Exception:
+            log.exception("namoz eslatmasi xatosi")
+        # Namoz jadvalini har 6 soatda yangilab turamiz (yangi oy boshlanishi uchun ham)
+        if asyncio.get_running_loop().time() - last_prefetch > 6 * 3600:
+            last_prefetch = asyncio.get_running_loop().time()
+            asyncio.create_task(_safe_prefetch())
+        await asyncio.sleep(30)
+
+
+async def _safe_prefetch():
+    try:
+        await prayer.prefetch_all()
+    except Exception:
+        log.exception("namoz jadvali yuklanmadi")
 
 
 # ---------- ommaviy xabar ----------

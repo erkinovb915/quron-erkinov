@@ -116,6 +116,33 @@ SCHEMA = [
         link TEXT,
         created_at TEXT
     )""",
+    """CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT
+    )""",
+    """CREATE TABLE IF NOT EXISTS prayer_cache (
+        region TEXT,
+        ym TEXT,
+        data TEXT,
+        fetched_at TEXT,
+        PRIMARY KEY (region, ym)
+    )""",
+    """CREATE TABLE IF NOT EXISTS prayer_sent (
+        region TEXT,
+        day TEXT,
+        pkey TEXT,
+        PRIMARY KEY (region, day, pkey)
+    )""",
+    """CREATE TABLE IF NOT EXISTS push_subs (
+        endpoint TEXT PRIMARY KEY,
+        data TEXT,
+        region TEXT,
+        lang TEXT,
+        prayer INTEGER DEFAULT 1,
+        daily INTEGER DEFAULT 1,
+        web_id TEXT,
+        created_at TEXT
+    )""",
     """CREATE TABLE IF NOT EXISTS daily_reads (
         user_id TEXT,
         day TEXT,
@@ -126,6 +153,8 @@ SCHEMA = [
 
 
 MIGRATIONS = [
+    "ALTER TABLE users ADD COLUMN region TEXT DEFAULT 'toshkent-shahri'",
+    "ALTER TABLE users ADD COLUMN prayer_notify INTEGER DEFAULT 0",
     "ALTER TABLE broadcasts ADD COLUMN src_chat BIGINT",
     "ALTER TABLE broadcasts ADD COLUMN src_msg BIGINT",
 ]
@@ -202,7 +231,7 @@ async def save_progress(uid: str, page: int, surah: int, ayah: int, lang: str | 
 
 
 async def set_field(uid: str, field: str, value):
-    assert field in {"lang", "remind", "remind_hour", "last_reminded", "blocked", "is_admin"}
+    assert field in {"lang", "remind", "remind_hour", "last_reminded", "blocked", "is_admin", "region", "prayer_notify"}
     await execute(f"UPDATE users SET {field} = ? WHERE id = ?", (value, uid))
 
 

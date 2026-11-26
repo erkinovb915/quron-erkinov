@@ -15,7 +15,8 @@ from starlette.responses import FileResponse, JSONResponse, Response
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 
-from . import bot, db, subs
+from . import bot, db, subs, prayer, notify, webpush
+from datetime import date as _date, timedelta as _td
 from . import telegram as tg
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
@@ -65,6 +66,7 @@ async def public_user(user: dict) -> dict:
         "surah": int(user.get("surah") or 1), "ayah": int(user.get("ayah") or 1),
         "pages_read": int(user.get("pages_read") or 0), "today": await db.today_pages(user["id"]),
         "remind": bool(user.get("remind")), "remind_hour": int(user.get("remind_hour") or 20),
+        "region": prayer.valid_region(user.get("region")), "prayer_notify": bool(user.get("prayer_notify")),
         "updated_at": user.get("updated_at"),
     }
 
@@ -118,7 +120,49 @@ async def api_settings(request: Request):
         await db.set_field(user["id"], "remind_hour", _int(data["remind_hour"], 0, 23, 20))
     if data.get("lang") in ("uz", "ru"):
         await db.set_field(user["id"], "lang", data["lang"])
+    if data.get("region") in prayer.REGION_MAP:
+        await db.set_field(user["id"], "region", data["region"])
+    if "prayer_notify" in data:
+        await db.set_field(user["id"], "prayer_notify", 1 if data["prayer_notify"] else 0)
     return JSONResponse(await public_user(await db.get_user(user["id"])))
+
+
+async def api_prayer(request: Request):
+    """Namoz vaqtlari: ?region=qoqon-shahri&days=7"""
+    region = prayer.valid_region(request.query_params.get("region"))
+    days = _int(request.query_params.get("days"), 1, 31, 1)
+    start = prayer.today_tashkent()
+    out = [await prayer.get_day(region, start + _td(days=i)) for i in range(days)]
+    resp = JSONResponse({"region": region, "name_uz": prayer.region_name(region, "uz"), "name_ru": prayer.region_name(region, "ru"),
+                         "today": start.isoformat(), "days": out})
+    resp.headers["Cache-Control"] = "public, max-age=600"
+    return resp
+
+
+async def api_regions(request: Request):
+    return JSONResponse({"regions": prayer.regions_payload(), "default": prayer.DEFAULT_REGION})
+
+
+async def api_push_key(request: Request):
+    return JSONResponse({"key": webpush.public_key()})
+
+
+async def api_push_subscribe(request: Request):
+    data = await body(request)
+    try:
+        web_id = data.get("webId") if WEB_ID_RE.match(str(data.get("webId") or "")) else None
+        await webpush.save_subscription(data.get("subscription") or {}, prayer.valid_region(data.get("region")),
+                                        data.get("lang") if data.get("lang") in ("uz", "ru") else "uz",
+                                        data.get("prayer", True), data.get("daily", True), web_id)
+    except ValueError:
+        return JSONResponse({"error": "bad_subscription"}, status_code=400)
+    return JSONResponse({"ok": True})
+
+
+async def api_push_unsubscribe(request: Request):
+    data = await body(request)
+    await webpush.remove_subscription(str(data.get("endpoint") or ""))
+    return JSONResponse({"ok": True})
 
 
 async def tg_webhook(request: Request):
@@ -133,6 +177,8 @@ async def api_cron(request: Request):
     """Tashqi cron (GitHub Actions) chaqiradi: serverni uyg'otadi va eslatmalarni yuboradi."""
     # Xavfsiz: faqat vaqti kelgan eslatmalarni yuboradi (har kuni bir marta), boshqa hech narsa qilmaydi
     sent = await bot.send_due_reminders()
+    sent += await notify.prayer_tick(open_button=bot.open_button)
+    sent += await notify.daily_push_tick()
     return JSONResponse({"ok": True, "reminders_sent": sent})
 
 
@@ -269,6 +315,10 @@ async def admin_page(request: Request):
 @contextlib.asynccontextmanager
 async def lifespan(app):
     await db.init()
+    try:
+        await webpush.init_keys()
+    except Exception:
+        log.exception("VAPID kalitlari yaratilmadi")
     tasks = [asyncio.create_task(bot.reminder_loop())]
     if tg.BOT_TOKEN:
         try:
@@ -302,6 +352,11 @@ routes = [
     Route("/api/progress", api_progress, methods=["POST"]),
     Route("/api/settings", api_settings, methods=["POST"]),
     Route("/api/cron", api_cron, methods=["GET", "POST"]),
+    Route("/api/prayer", api_prayer),
+    Route("/api/regions", api_regions),
+    Route("/api/push/key", api_push_key),
+    Route("/api/push/subscribe", api_push_subscribe, methods=["POST"]),
+    Route("/api/push/unsubscribe", api_push_unsubscribe, methods=["POST"]),
     Route("/tg/webhook", tg_webhook, methods=["POST"]),
     Route("/admin", admin_page),
     Route("/api/admin/login", admin_login, methods=["POST"]),

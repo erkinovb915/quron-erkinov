@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://api.alquran.cloud">
 <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css?v=5">
+<link rel="stylesheet" href="/css/style.css?v=6">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -54,6 +54,11 @@
   <div class="intro-actions">
     <button class="btn btn-gold" id="btnContinue"><span data-i18n="start">O'qishni boshlash</span></button>
     <button class="btn btn-ghost" id="btnFromStart" hidden data-i18n="fromStart">Boshidan</button>
+  </div>
+  <button class="intro-prayer" id="introPrayer" data-open="prayer">🕌</button>
+  <div class="intro-features">
+    <button class="feat" data-open="prayer"><span>🕌</span><b data-i18n="prayerTimes">Namoz vaqtlari</b></button>
+    <button class="feat" data-open="tasbih"><span>📿</span><b data-i18n="tasbih">Tasbeh</b></button>
   </div>
   <div class="intro-lang">
     <button class="chip" data-lang="uz">🇺🇿 O'zbekcha</button>
@@ -131,7 +136,8 @@
       <button class="pg-arrow" id="pgNext" aria-label="Keyingi">›</button>
     </nav>
     <div class="bb-row">
-      <span class="bb-today" id="bbToday">📅 0</span>
+      <button class="prayer-chip" aria-label="Namoz vaqtlari">🕌</button>
+      <span class="bb-today" id="bbToday" hidden>📅 0</span>
       <input type="range" id="pageSlider" min="1" max="604" value="1" aria-label="Sahifa">
       <button class="page-chip" id="btnGoto"><span id="pageNum">1</span>/604</button>
     </div>
@@ -162,6 +168,10 @@
       <button class="icon-btn close" data-close aria-label="Yopish">✕</button>
     </div>
 
+    <div class="menu-feats">
+      <button class="feat" data-open="prayer"><span>🕌</span><b data-i18n="prayerTimes">Namoz vaqtlari</b></button>
+      <button class="feat" data-open="tasbih"><span>📿</span><b data-i18n="tasbih">Tasbeh</b></button>
+    </div>
     <div class="stat-grid" id="statGrid"></div>
 
     <div class="setting">
@@ -197,6 +207,51 @@
     </div>
     <p class="foot-note">Erkinov loyihasi · <span data-i18n="sourceNote">Tarjimalar: Muhammad Sodiq Muhammad Yusuf (uz), E. Kuliyev (ru)</span></p>
   </div>
+</div>
+
+<div class="sheet" id="sheetPrayer" hidden>
+  <div class="sheet-card">
+    <div class="sheet-head">
+      <h3>🕌 <span data-i18n="prayerTimes">Namoz vaqtlari</span></h3>
+      <button class="icon-btn close" data-close aria-label="Yopish">✕</button>
+    </div>
+    <div id="prayerBody"></div>
+  </div>
+</div>
+
+<div class="sheet sheet-tasbih" id="sheetTasbih" hidden>
+  <div class="sheet-card">
+    <div class="sheet-head">
+      <h3>📿 <span data-i18n="tasbih">Tasbeh</span></h3>
+      <button class="icon-btn close" data-close aria-label="Yopish">✕</button>
+    </div>
+    <div class="ts-dhikr" id="tsDhikr"></div>
+    <div class="ts-ar" id="tsAr"></div>
+    <div class="ts-name"><b id="tsName"></b> — <span id="tsMean"></span></div>
+    <div class="ts-wrap">
+      <div class="ts-beads" id="tsBeads"></div>
+      <svg class="ts-svg" viewBox="0 0 240 240"><circle cx="120" cy="120" r="108" class="ts-track"/><circle cx="120" cy="120" r="108" class="ts-ring" id="tsRing"/></svg>
+      <button class="ts-btn" id="tsBtn" aria-label="Sanash"><span id="tsCount">0</span><small id="tsTarget">/ 33</small></button>
+    </div>
+    <div class="ts-targets" id="tsTargets">
+      <button class="chip" data-t="33">33</button><button class="chip" data-t="99">99</button><button class="chip" data-t="100">100</button><button class="chip" data-t="0">∞</button>
+      <button class="chip" id="tsReset">↺</button>
+    </div>
+    <div class="ts-stats"><span><span data-i18n="today">Bugun</span>: <b id="tsToday">0</b></span><span><span data-i18n="allTime">Jami</span>: <b id="tsTotal">0</b></span></div>
+  </div>
+</div>
+
+<div class="banner" id="installBanner" hidden>
+  <img src="/icons/icon-192.png" alt="">
+  <div><b data-i18n="installBannerTitle">Ilovani o'rnating</b><small data-i18n="installBannerText">Telefoningiz ekraniga qo'shing — internetsiz ham ochiladi</small></div>
+  <button class="btn btn-gold btn-small" id="installBannerBtn" data-i18n="installShort">O'rnatish</button>
+  <button class="banner-x" data-x aria-label="Yopish">✕</button>
+</div>
+<div class="banner" id="notifyBanner" hidden>
+  <span class="banner-ic">🔔</span>
+  <div><b data-i18n="notifyBannerTitle">Bildirishnomalarni yoqing</b><small data-i18n="notifyBannerText">Har namoz vaqtida va o'qish vaqtida eslatamiz</small></div>
+  <button class="btn btn-gold btn-small" id="notifyBannerBtn" data-i18n="turnOn">Yoqish</button>
+  <button class="banner-x" data-x aria-label="Yopish">✕</button>
 </div>
 
 <div class="sheet" id="sheetGoto" hidden>
@@ -249,6 +304,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script type="module" src="/js/app.js?v=5"></script>
+<script type="module" src="/js/app.js?v=6"></script>
 </body>
 </html>

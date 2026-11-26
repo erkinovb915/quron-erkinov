@@ -1,8 +1,9 @@
 // Qur'oni Karim — Erkinov loyihasi. Sayt, Telegram Mini App va PWA uchun yagona ilova.
-import { loadMeta, loadPage, prefetch, juzOfPage, toArabicNum } from "./quran.js?v=5";
-import { SURAH_NAMES } from "./surahs.js?v=5";
-import { STR, tr } from "./i18n.js?v=5";
-import { startSky } from "./sky.js?v=5";
+import { loadMeta, loadPage, prefetch, juzOfPage, toArabicNum } from "./quran.js?v=6";
+import { SURAH_NAMES } from "./surahs.js?v=6";
+import { STR, tr } from "./i18n.js?v=6";
+import { startSky } from "./sky.js?v=6";
+import { initExtras } from "./extras.js?v=6";
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -71,6 +72,7 @@ async function syncUser() {
   updateIntro();
   updateToday();
   renderTgBox();
+  EX?.onUser();
 }
 
 // Majburiy obuna oynasi (faqat Telegram mini ilovada)
@@ -147,6 +149,7 @@ function setLang(lang, rerender = true) {
   store.set("lang", lang);
   applyI18n();
   renderTgBox();
+  EX?.refresh();
   if (rerender && document.body.classList.contains("reading")) renderPage(targetPage(), null);
   else updateHeader();
 }
@@ -855,16 +858,27 @@ document.addEventListener("visibilitychange", () => {
 });
 
 // ---------------- ishga tushirish ----------------
+let EX = null;
 async function init() {
   applyLook();
   applyI18n();
   bind();
+  EX = initExtras({
+    api, toast, haptic, openSheet, closeSheet, t, IN_TG, TG, doInstall,
+    getLang: () => S.lang, getUser: () => S.user, setUser: (u) => { S.user = u; renderTgBox(); },
+    apiBase: API_BASE, webId: S.webId,
+  });
+  const view = new URLSearchParams(location.search).get("view");
+  if (view === "prayer" || view === "tasbih") {
+    setTimeout(() => (view === "prayer" ? EX.openPrayer() : EX.openTasbih()), 300);
+  }
   startSky($("#sky"));
   updateIntro();
   loadMeta().then((m) => { S.meta = m; if (!$("#sheetSurahs").hidden) renderList(); updateHeader(); }).catch(() => { });
   syncUser();
   // Telegram'dan yoki havoladan ma'lum sahifa bilan ochilsa — darrov kitobni ochamiz
-  if (urlPage > 0 || IN_TG) {
+  const viewParam = new URLSearchParams(location.search).get("view");
+  if ((urlPage > 0 || IN_TG) && !viewParam) {
     const startPage = urlPage > 0 ? urlPage : S.progress.page || 1;
     S.usedUrl = true;
     setTimeout(() => openBook(startPage), IN_TG ? 900 : 600);

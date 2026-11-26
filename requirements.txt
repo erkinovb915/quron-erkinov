@@ -1,3 +1,4 @@
 starlette>=0.40
 uvicorn>=0.30
 psycopg[binary]>=3.2
+cryptography>=42
