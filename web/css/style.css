@@ -558,4 +558,4 @@ body.dark .sheet-card { background: linear-gradient(180deg, #0b1a17, #050c0a); }
 .sub-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
 .sub-list a { display: block; padding: 12px; border-radius: 12px; background: #2aabee; color: #fff; font-weight: 700; text-decoration: none; }
 body.dragging, body.dragging * { user-select: none; -webkit-user-select: none; cursor: grabbing; }
-.stage { touch-action: pan-y; }
+.stage, .page-body { touch-action: pan-y; }

@@ -330,12 +330,19 @@ async function renderPage(page, dir) {
 function makeLeaf(oldHTML, newHTML, forward) {
   const book = $("#book");
   const pageEl = $("#page");
-  pageEl.innerHTML = forward ? newHTML : oldHTML;
   const leaf = document.createElement("div");
   leaf.className = "leaf";
   leaf.style.transformOrigin = "right center";
-  leaf.innerHTML = `<div class="leaf-face leaf-front">${forward ? oldHTML : newHTML}</div>
-    <div class="leaf-face leaf-back"></div><div class="leaf-shade"></div>`;
+  leaf.innerHTML = `<div class="leaf-face leaf-front"></div><div class="leaf-face leaf-back"></div><div class="leaf-shade"></div>`;
+  const front = leaf.querySelector(".leaf-front");
+  if (forward) {
+    // Barmoq turgan elementlarni o'chirmasdan varaqqa ko'chiramiz — aks holda telefon barmoqni "yo'qotadi"
+    while (pageEl.firstChild) front.appendChild(pageEl.firstChild);
+    if (!front.firstChild) front.innerHTML = oldHTML;
+    pageEl.innerHTML = newHTML;
+  } else {
+    front.innerHTML = newHTML;
+  }
   const under = document.createElement("div");
   under.className = "under-shade";
   book.append(under, leaf);
@@ -712,6 +719,7 @@ function bind() {
       if (drag.p0 === undefined) drag.p0 = drag.p;
     }
     drag.leaf.set(drag.p);
+    drag.lastMove = performance.now();
   });
   const endDrag = async (e) => {
     if (!drag || (e && e.pointerId !== drag.id)) return;
@@ -729,6 +737,12 @@ function bind() {
   };
   stage.addEventListener("pointerup", endDrag);
   stage.addEventListener("pointercancel", endDrag);
+  window.addEventListener("pointerup", endDrag, true);
+  window.addEventListener("pointercancel", endDrag, true);
+  // Har ehtimolga qarshi: varaq qotib qolsa, 4 soniyadan keyin o'zi yakunlanadi
+  setInterval(() => {
+    if (drag && drag.active && performance.now() - (drag.lastMove || drag.t0) > 4000) endDrag();
+  }, 1000);
 
   // Chiroq yorug'ligi
   const track = (x, y) => { if (S.lamp) moveLight(x, y); };
