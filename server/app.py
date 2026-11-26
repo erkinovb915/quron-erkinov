@@ -130,8 +130,14 @@ async def api_settings(request: Request):
 async def api_prayer(request: Request):
     """Namoz vaqtlari: ?region=qoqon-shahri&days=7"""
     region = prayer.valid_region(request.query_params.get("region"))
-    days = _int(request.query_params.get("days"), 1, 31, 1)
-    start = prayer.today_tashkent()
+    month = request.query_params.get("month") or ""
+    if re.match(r"^20\d\d-(0[1-9]|1[0-2])$", month):
+        y, m = map(int, month.split("-"))
+        start = _date(y, m, 1)
+        days = ((_date(y + (m == 12), m % 12 + 1, 1)) - start).days
+    else:
+        days = _int(request.query_params.get("days"), 1, 31, 1)
+        start = prayer.today_tashkent()
     out = [await prayer.get_day(region, start + _td(days=i)) for i in range(days)]
     resp = JSONResponse({"region": region, "name_uz": prayer.region_name(region, "uz"), "name_ru": prayer.region_name(region, "ru"),
                          "today": start.isoformat(), "days": out})

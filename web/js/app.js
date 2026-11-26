@@ -1,9 +1,10 @@
 // Qur'oni Karim — Erkinov loyihasi. Sayt, Telegram Mini App va PWA uchun yagona ilova.
-import { loadMeta, loadPage, prefetch, juzOfPage, toArabicNum } from "./quran.js?v=6";
-import { SURAH_NAMES } from "./surahs.js?v=6";
-import { STR, tr } from "./i18n.js?v=6";
-import { startSky } from "./sky.js?v=6";
-import { initExtras } from "./extras.js?v=6";
+import { loadMeta, loadPage, prefetch, juzOfPage, toArabicNum } from "./quran.js?v=7";
+import { SURAH_NAMES } from "./surahs.js?v=7";
+import { STR, tr } from "./i18n.js?v=7";
+import { startSky } from "./sky.js?v=7";
+import { initExtras } from "./extras.js?v=7";
+import { initSections } from "./sections.js?v=7";
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -150,6 +151,7 @@ function setLang(lang, rerender = true) {
   applyI18n();
   renderTgBox();
   EX?.refresh();
+  SEC?.refresh();
   if (rerender && document.body.classList.contains("reading")) renderPage(targetPage(), null);
   else updateHeader();
 }
@@ -859,6 +861,7 @@ document.addEventListener("visibilitychange", () => {
 
 // ---------------- ishga tushirish ----------------
 let EX = null;
+let SEC = null;
 async function init() {
   applyLook();
   applyI18n();
@@ -868,9 +871,12 @@ async function init() {
     getLang: () => S.lang, getUser: () => S.user, setUser: (u) => { S.user = u; renderTgBox(); },
     apiBase: API_BASE, webId: S.webId,
   });
+  SEC = initSections({ t, getLang: () => S.lang, toast, haptic, openSheet, closeSheet, IN_TG, TG, getUser: () => S.user, apiBase: API_BASE });
   const view = new URLSearchParams(location.search).get("view");
   if (view === "prayer" || view === "tasbih") {
     setTimeout(() => (view === "prayer" ? EX.openPrayer() : EX.openTasbih()), 300);
+  } else if (["duas", "names", "qibla", "calendar", "islam", "donate"].includes(view)) {
+    setTimeout(() => SEC.open(view), 300);
   }
   startSky($("#sky"));
   updateIntro();

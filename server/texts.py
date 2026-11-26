@@ -26,13 +26,22 @@ T = {
             "• Qayerda qolganingizni eslab qoladi\n"
             "• Har kuni o'qishni eslatib turaman\n"
             "• 🕌 Namoz vaqtlari va har namozda eslatma\n"
-            "• 📿 Tasbeh\n\n"
+            "• 🤲 Duolar, ✨ 99 ism, 🧭 qibla, 📅 taqvim, 📿 tasbeh\n"
+            "• ☪️ Islom asoslari\n\n"
             "Pastdagi tugmani bosib o'qishni boshlang 👇"
         ),
         "open": "📖 Qur'onni ochish",
         "prayer_btn": "🕌 Namoz vaqtlari",
         "tasbih_btn": "📿 Tasbeh",
         "tasbih_open": "📿 Tasbehni ochish uchun tugmani bosing 👇",
+        "duas_btn": "🤲 Duolar", "qibla_btn": "🧭 Qibla", "calendar_btn": "📅 Taqvim", "names_btn": "✨ 99 ism",
+        "islam_btn": "☪️ Islom", "donate_btn": "💝 Hissa qo'shish",
+        "duas_text": "🤲 <b>Duolar va zikrlar</b>\nTongi va kechki zikrlar, Qur'ondagi va sunnat duolar, safar, taom, oila, kasallik va boshqa holatlar duolari 👇",
+        "qibla_text": "🧭 <b>Qibla</b>\nKompas Ka'ba tomonni ko'rsatadi. Telefonni gorizontal ushlang 👇",
+        "calendar_text": "📅 <b>Taqvim</b>\nHijriy sana, islomiy bayramlar va oylik namoz taqvimi 👇",
+        "names_text": "✨ <b>Allohning 99 go'zal ismi</b>\nArabcha, o'qilishi va ma'nosi bilan 👇",
+        "islam_text": "☪️ <b>Islom asoslari</b>\nIymon, namoz, zakot, ro'za, haj, umra, harom amallar, ayollar sahifasi, nabaviy qaytariqlar 👇",
+        "donate_text": "💝 <b>Loyihaga hissa qo'shing</b>\n\nIlova bepul va reklamasiz. Loyihaning rivoji uchun hissa qo'shishingiz mumkin — har bir yordam sadaqai joriya!\n\n💳 Karta: <code>{card}</code>\n👤 {owner}\n\nJazakallohu xoyro! 🤲",
         "continue": "📖 {page}-sahifadan davom etish",
         "where": "📍 Qayerda qoldim",
         "remind": "🔔 Eslatma",
@@ -66,7 +75,7 @@ T = {
         "admin_bad": "Parol noto'g'ri.",
         "help": (
             "Buyruqlar:\n/start — bosh menyu\n/davom — qayerda qoldim\n"
-            "/namoz — namoz vaqtlari\n/tasbeh — tasbeh\n/eslatma — kundalik eslatma\n/til — tilni o'zgartirish"
+            "/namoz — namoz vaqtlari\n/duolar — duolar va zikrlar\n/qibla — qibla\n/taqvim — taqvim\n/tasbeh — tasbeh\n/ismlar — 99 ism\n/islom — Islom asoslari\n/hissa — loyihaga hissa\n/eslatma — kundalik eslatma\n/til — tilni o'zgartirish"
         ),
         "stats": "📊 Foydalanuvchilar: {total} (Telegram: {telegram}, sayt: {web})\nBugun o'qiganlar: {today_readers}",
     },
@@ -79,13 +88,22 @@ T = {
             "• Запоминает, где вы остановились\n"
             "• Каждый день напоминаю о чтении\n"
             "• 🕌 Время намаза и напоминание о каждом намазе\n"
-            "• 📿 Тасбих\n\n"
+            "• 🤲 Дуа, ✨ 99 имён, 🧭 кибла, 📅 календарь, 📿 тасбих\n"
+            "• ☪️ Основы ислама\n\n"
             "Нажмите кнопку ниже, чтобы начать 👇"
         ),
         "open": "📖 Открыть Коран",
         "prayer_btn": "🕌 Время намаза",
         "tasbih_btn": "📿 Тасбих",
         "tasbih_open": "📿 Нажмите кнопку, чтобы открыть тасбих 👇",
+        "duas_btn": "🤲 Дуа", "qibla_btn": "🧭 Кибла", "calendar_btn": "📅 Календарь", "names_btn": "✨ 99 имён",
+        "islam_btn": "☪️ Ислам", "donate_btn": "💝 Поддержать",
+        "duas_text": "🤲 <b>Дуа и зикры</b>\nУтренние и вечерние азкары, мольбы из Корана и Сунны, в пути, за едой, в семье, при болезни и др. 👇",
+        "qibla_text": "🧭 <b>Кибла</b>\nКомпас покажет направление на Каабу. Держите телефон горизонтально 👇",
+        "calendar_text": "📅 <b>Календарь</b>\nДата по хиджре, исламские праздники и месячный календарь намаза 👇",
+        "names_text": "✨ <b>99 прекрасных имён Аллаха</b>\nНа арабском, с чтением и значением 👇",
+        "islam_text": "☪️ <b>Основы ислама</b>\nИман, намаз, закят, пост, хадж, умра, запретное, страница для женщин, запреты Пророка ﷺ 👇",
+        "donate_text": "💝 <b>Поддержать проект</b>\n\nПриложение бесплатное и без рекламы. Вы можете поддержать его развитие — каждая помощь это садака джария!\n\n💳 Карта: <code>{card}</code>\n👤 {owner}\n\nДжазакаллаху хайран! 🤲",
         "continue": "📖 Продолжить со стр. {page}",
         "where": "📍 Где я остановился",
         "remind": "🔔 Напоминание",
@@ -119,7 +137,7 @@ T = {
         "admin_bad": "Неверный пароль.",
         "help": (
             "Команды:\n/start — главное меню\n/davom — где я остановился\n"
-            "/namoz — время намаза\n/tasbeh — тасбих\n/eslatma — напоминание\n/til — сменить язык"
+            "/namoz — время намаза\n/duolar — дуа и зикры\n/qibla — кибла\n/taqvim — календарь\n/tasbeh — тасбих\n/ismlar — 99 имён\n/islom — основы ислама\n/hissa — поддержать\n/eslatma — напоминание\n/til — сменить язык"
         ),
         "stats": "📊 Пользователи: {total} (Telegram: {telegram}, сайт: {web})\nЧитали сегодня: {today_readers}",
     },

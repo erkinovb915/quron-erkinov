@@ -34,6 +34,9 @@ def main_menu(user: dict, admin: bool = False) -> dict:
         [{"text": open_text, "web_app": {"url": app_url(page)}}],
         [{"text": t(lang, "where"), "callback_data": "where"}, {"text": t(lang, "remind"), "callback_data": "remind"}],
         [{"text": t(lang, "prayer_btn"), "callback_data": "pr"}, {"text": t(lang, "tasbih_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=tasbih"}}],
+        [{"text": t(lang, "duas_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=duas"}}, {"text": t(lang, "qibla_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=qibla"}}],
+        [{"text": t(lang, "calendar_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=calendar"}}, {"text": t(lang, "names_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=names"}}],
+        [{"text": t(lang, "islam_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=islam"}}, {"text": t(lang, "donate_btn"), "callback_data": "don"}],
         [{"text": t(lang, "lang"), "callback_data": "lang"}],
     ]
     if admin:
@@ -100,6 +103,24 @@ async def handle_update(update: dict):
                 await db.set_field(uid, "blocked", 0)
     except Exception:
         log.exception("update xatosi")
+
+
+# ---------- bo'limlar (mini ilova sahifalari) ----------
+SECTION_CMDS = {
+    "/duolar": ("duas", "duas_btn", "duas_text"), "/duo": ("duas", "duas_btn", "duas_text"),
+    "/qibla": ("qibla", "qibla_btn", "qibla_text"), "/taqvim": ("calendar", "calendar_btn", "calendar_text"),
+    "/ismlar": ("names", "names_btn", "names_text"), "/islom": ("islam", "islam_btn", "islam_text"),
+}
+DONATE_CARD = "4448 8444 0951 5858"
+DONATE_OWNER = "Dusmatova Maxliyoxon"
+
+
+def section_markup(lang: str, view: str, btn_key: str) -> dict:
+    return {"inline_keyboard": [[{"text": t(lang, btn_key), "web_app": {"url": f"{PUBLIC_URL}/?view={view}"}}]]}
+
+
+def donate_text(lang: str) -> str:
+    return t(lang, "donate_text", card=DONATE_CARD, owner=DONATE_OWNER)
 
 
 # ---------- namoz vaqtlari ----------
@@ -274,6 +295,11 @@ async def _on_message(msg: dict):
         await tg.send(chat, t(lang, "choose_lang"), LANG_MARKUP)
     elif cmd in ("/namoz", "/prayer"):
         await tg.send(chat, await prayer_text(user), prayer_markup(user))
+    elif cmd in SECTION_CMDS:
+        view, btn, txt = SECTION_CMDS[cmd]
+        await tg.send(chat, t(lang, txt), section_markup(lang, view, btn))
+    elif cmd in ("/hissa", "/donate"):
+        await tg.send(chat, donate_text(lang), {"inline_keyboard": [[{"text": t(lang, "donate_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=donate"}}]]})
     elif cmd in ("/tasbeh", "/tasbih"):
         await tg.send(chat, t(lang, "tasbih_open"), {"inline_keyboard": [[{"text": t(lang, "tasbih_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=tasbih"}}]]})
     elif cmd == "/stats" and admin:
@@ -314,6 +340,8 @@ async def _on_callback(cq: dict):
         await tg.send(chat, subs.subscribe_text(lang), subs.subscribe_markup(missing, lang))
     elif data == "where":
         await tg.send(chat, await where_text(user), open_button(user))
+    elif data == "don":
+        await tg.send(chat, donate_text(lang), {"inline_keyboard": [[{"text": t(lang, "donate_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=donate"}}]]})
     elif data in ("pr", "pr:upd"):
         if data == "pr":
             await tg.send(chat, await prayer_text(user), prayer_markup(user))
@@ -430,10 +458,14 @@ def _esc(s: str) -> str:
 # ---------- sozlash ----------
 
 COMMANDS = {
-    "uz": [("start", "Bosh menyu"), ("namoz", "🕌 Namoz vaqtlari"), ("davom", "Qayerda qoldim"), ("tasbeh", "📿 Tasbeh"),
-           ("eslatma", "Kundalik eslatma"), ("til", "Tilni o'zgartirish")],
-    "ru": [("start", "Главное меню"), ("namoz", "🕌 Время намаза"), ("davom", "Где я остановился"), ("tasbeh", "📿 Тасбих"),
-           ("eslatma", "Напоминание"), ("til", "Сменить язык")],
+    "uz": [("start", "Bosh menyu"), ("namoz", "🕌 Namoz vaqtlari"), ("davom", "📖 Qayerda qoldim"), ("duolar", "🤲 Duolar va zikrlar"),
+           ("qibla", "🧭 Qibla"), ("taqvim", "📅 Taqvim"), ("tasbeh", "📿 Tasbeh"), ("ismlar", "✨ Allohning 99 ismi"),
+           ("islom", "☪️ Islom asoslari"), ("hissa", "💝 Loyihaga hissa qo'shish"), ("eslatma", "🔔 Kundalik eslatma"),
+           ("til", "🌐 Tilni o'zgartirish")],
+    "ru": [("start", "Главное меню"), ("namoz", "🕌 Время намаза"), ("davom", "📖 Где я остановился"), ("duolar", "🤲 Дуа и зикры"),
+           ("qibla", "🧭 Кибла"), ("taqvim", "📅 Календарь"), ("tasbeh", "📿 Тасбих"), ("ismlar", "✨ 99 имён Аллаха"),
+           ("islom", "☪️ Основы ислама"), ("hissa", "💝 Поддержать проект"), ("eslatma", "🔔 Напоминание"),
+           ("til", "🌐 Сменить язык")],
 }
 
 
@@ -467,9 +499,19 @@ async def setup(webhook_secret: str):
         await tg.call("setChatMenuButton", menu_button={"type": "web_app", "text": "📖 Qur'on",
                                                         "web_app": {"url": app_url()}})
         await tg.call("setMyDescription", description=(
-            "📖 Qur'oni Karim — 3D varaqlanadigan mushaf, o'zbekcha va ruscha tarjima, "
-            "chiroq, tungi rejim va har kuni eslatma.\n\nErkinov loyihasi"))
-        await tg.call("setMyShortDescription", short_description="📖 Qur'on: 3D mushaf, tarjima va kundalik eslatma")
+            "📖 Qur'oni Karim — 3D varaqlanadigan mushaf, o'zbekcha va ruscha tarjima\n"
+            "🕌 Namoz vaqtlari va har namozda eslatma\n"
+            "🤲 Duolar va zikrlar · ✨ Allohning 99 ismi\n"
+            "🧭 Qibla · 📅 Hijriy taqvim · 📿 Tasbeh\n"
+            "☪️ Islom asoslari\n\nErkinov loyihasi"))
+        await tg.call("setMyDescription", language_code="ru", description=(
+            "📖 Священный Коран — мусхаф с 3D-перелистыванием, перевод на узбекский и русский\n"
+            "🕌 Время намаза и напоминания\n"
+            "🤲 Дуа и зикры · ✨ 99 имён Аллаха\n"
+            "🧭 Кибла · 📅 Календарь хиджры · 📿 Тасбих\n"
+            "☪️ Основы ислама\n\nПроект Эркинова"))
+        await tg.call("setMyShortDescription", short_description="📖 Qur'on, 🕌 namoz vaqtlari, 🤲 duolar, 🧭 qibla, 📿 tasbeh — Erkinov loyihasi")
+        await tg.call("setMyShortDescription", language_code="ru", short_description="📖 Коран, 🕌 время намаза, 🤲 дуа, 🧭 кибла, 📿 тасбих")
         log.info("Bot sozlandi")
     except Exception:
         log.exception("Bot sozlashda xato")

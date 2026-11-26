@@ -176,4 +176,4 @@ async def prefetch_all():
 
 
 def regions_payload():
-    return [{"slug": s, "uz": uz, "ru": ru} for s, uz, ru, _, _ in REGIONS]
+    return [{"slug": s, "uz": uz, "ru": ru, "lat": lat, "lng": lng} for s, uz, ru, lat, lng in REGIONS]

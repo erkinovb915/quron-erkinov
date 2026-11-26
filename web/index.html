@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://api.alquran.cloud">
 <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css?v=6">
+<link rel="stylesheet" href="/css/style.css?v=7">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -56,9 +56,15 @@
     <button class="btn btn-ghost" id="btnFromStart" hidden data-i18n="fromStart">Boshidan</button>
   </div>
   <button class="intro-prayer" id="introPrayer" data-open="prayer">🕌</button>
-  <div class="intro-features">
+  <div class="intro-features feat-grid">
     <button class="feat" data-open="prayer"><span>🕌</span><b data-i18n="prayerTimes">Namoz vaqtlari</b></button>
     <button class="feat" data-open="tasbih"><span>📿</span><b data-i18n="tasbih">Tasbeh</b></button>
+    <button class="feat" data-sec="duas"><span>🤲</span><b data-i18n="duas">Duolar</b></button>
+    <button class="feat" data-sec="names"><span>✨</span><b data-i18n="names99">99 ism</b></button>
+    <button class="feat" data-sec="qibla"><span>🧭</span><b data-i18n="qibla">Qibla</b></button>
+    <button class="feat" data-sec="calendar"><span>📅</span><b data-i18n="calendar">Taqvim</b></button>
+    <button class="feat" data-sec="islam"><span>☪️</span><b data-i18n="islam">Islom</b></button>
+    <button class="feat feat-don" data-sec="donate"><span>💝</span><b data-i18n="donateShort">Hissa qo'shish</b></button>
   </div>
   <div class="intro-lang">
     <button class="chip" data-lang="uz">🇺🇿 O'zbekcha</button>
@@ -168,9 +174,15 @@
       <button class="icon-btn close" data-close aria-label="Yopish">✕</button>
     </div>
 
-    <div class="menu-feats">
+    <div class="menu-feats feat-grid">
       <button class="feat" data-open="prayer"><span>🕌</span><b data-i18n="prayerTimes">Namoz vaqtlari</b></button>
-      <button class="feat" data-open="tasbih"><span>📿</span><b data-i18n="tasbih">Tasbeh</b></button>
+    <button class="feat" data-open="tasbih"><span>📿</span><b data-i18n="tasbih">Tasbeh</b></button>
+    <button class="feat" data-sec="duas"><span>🤲</span><b data-i18n="duas">Duolar</b></button>
+    <button class="feat" data-sec="names"><span>✨</span><b data-i18n="names99">99 ism</b></button>
+    <button class="feat" data-sec="qibla"><span>🧭</span><b data-i18n="qibla">Qibla</b></button>
+    <button class="feat" data-sec="calendar"><span>📅</span><b data-i18n="calendar">Taqvim</b></button>
+    <button class="feat" data-sec="islam"><span>☪️</span><b data-i18n="islam">Islom</b></button>
+    <button class="feat feat-don" data-sec="donate"><span>💝</span><b data-i18n="donateShort">Hissa qo'shish</b></button>
     </div>
     <div class="stat-grid" id="statGrid"></div>
 
@@ -206,6 +218,17 @@
       <button class="btn btn-gold btn-small" id="btnInstall" data-i18n="install">📲 O'rnatish</button>
     </div>
     <p class="foot-note">Erkinov loyihasi · <span data-i18n="sourceNote">Tarjimalar: Muhammad Sodiq Muhammad Yusuf (uz), E. Kuliyev (ru)</span></p>
+  </div>
+</div>
+
+<div class="sheet sheet-full" id="sheetSection" hidden>
+  <div class="sheet-card">
+    <div class="sheet-head">
+      <button class="icon-btn" id="secBack" aria-label="Orqaga">‹</button>
+      <h3 id="secTitle"></h3>
+      <button class="icon-btn close" id="secClose" aria-label="Yopish">✕</button>
+    </div>
+    <div id="secBody" class="sec-body"></div>
   </div>
 </div>
 
@@ -304,6 +327,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script type="module" src="/js/app.js?v=6"></script>
+<script type="module" src="/js/app.js?v=7"></script>
 </body>
 </html>
