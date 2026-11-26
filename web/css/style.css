@@ -546,3 +546,16 @@ body.dark .sheet-card { background: linear-gradient(180deg, #0b1a17, #050c0a); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* ---------- Majburiy obuna ---------- */
+.sub-gate { position: fixed; inset: 0; z-index: 95; display: flex; align-items: center; justify-content: center; padding: 20px;
+  background: rgba(2, 12, 10, .82); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: fadeIn .3s; }
+.sub-card { width: min(420px, 100%); text-align: center; padding: 26px 20px 22px; border-radius: 24px;
+  background: linear-gradient(180deg, #0f4a3e, #072a24); border: 1px solid var(--gold); box-shadow: 0 30px 70px -10px #000; }
+.sub-icon { font-size: 44px; }
+.sub-card h3 { margin: 6px 0 6px; font-size: 20px; }
+.sub-card p { margin: 0 0 14px; opacity: .85; font-size: 14px; line-height: 1.5; }
+.sub-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.sub-list a { display: block; padding: 12px; border-radius: 12px; background: #2aabee; color: #fff; font-weight: 700; text-decoration: none; }
+body.dragging, body.dragging * { user-select: none; -webkit-user-select: none; cursor: grabbing; }
+.stage { touch-action: pan-y; }

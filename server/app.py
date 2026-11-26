@@ -15,7 +15,7 @@ from starlette.responses import FileResponse, JSONResponse, Response
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 
-from . import bot, db
+from . import bot, db, subs
 from . import telegram as tg
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
@@ -83,10 +83,17 @@ async def api_config(request: Request):
 
 
 async def api_auth(request: Request):
-    user = await identify(await body(request))
+    data = await body(request)
+    user = await identify(data)
     if not user:
         return JSONResponse({"error": "auth"}, status_code=401)
-    return JSONResponse(await public_user(user))
+    out = await public_user(user)
+    out["admin"] = subs.is_admin_user(user)
+    out["subscribe"] = []
+    if user.get("tg_id") and not out["admin"] and tg.BOT_TOKEN:
+        missing = await subs.missing_channels(int(user["tg_id"]), fresh=bool(data.get("recheck")))
+        out["subscribe"] = [{"title": c["title"], "link": c["link"]} for c in missing]
+    return JSONResponse(out)
 
 
 async def api_progress(request: Request):
@@ -162,6 +169,33 @@ async def admin_login(request: Request):
     if ADMIN_PASSWORD and hmac.compare_digest(str(data.get("password", "")), ADMIN_PASSWORD):
         return JSONResponse({"token": make_token()})
     return JSONResponse({"error": "bad_password"}, status_code=401)
+
+
+async def admin_tg_login(request: Request):
+    """Telegram ichida (mini ilova) ochilgan admin panel — parolsiz kirish, faqat adminlar uchun."""
+    data = await body(request)
+    tg_user = tg.validate_init_data(data.get("initData") or "")
+    if tg_user:
+        user = await db.get_user(f"tg:{tg_user['id']}")
+        if subs.is_admin_user(user or {"tg_id": tg_user["id"]}) and ADMIN_PASSWORD:
+            return JSONResponse({"token": make_token()})
+    return JSONResponse({"error": "not_admin"}, status_code=401)
+
+
+async def admin_channels(request: Request):
+    if not is_admin(request):
+        return deny()
+    if request.method == "POST":
+        data = await body(request)
+        try:
+            chat_id, title, link = await subs.resolve_channel(str(data.get("ref") or ""))
+        except tg.TgError as e:
+            msg = "Bot bu kanalda admin emas" if e.description == "bot_not_admin" else f"Kanal topilmadi: {e.description}"
+            return JSONResponse({"error": msg}, status_code=400)
+        await db.add_channel(chat_id, title, link)
+    elif request.method == "DELETE":
+        await db.remove_channel(request.query_params.get("id", ""))
+    return JSONResponse({"channels": await db.list_channels()})
 
 
 async def admin_stats(request: Request):
@@ -269,6 +303,8 @@ routes = [
     Route("/admin", admin_page),
     Route("/api/admin/login", admin_login, methods=["POST"]),
     Route("/api/admin/stats", admin_stats),
+    Route("/api/admin/tg-login", admin_tg_login, methods=["POST"]),
+    Route("/api/admin/channels", admin_channels, methods=["GET", "POST", "DELETE"]),
     Route("/api/admin/users", admin_users),
     Route("/api/admin/broadcast", admin_broadcast, methods=["POST"]),
     Route("/api/admin/broadcasts", admin_broadcasts),

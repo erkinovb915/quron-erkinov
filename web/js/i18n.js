@@ -20,6 +20,8 @@ export const STR = {
     iosTitle: "iPhone'ga o'rnatish", iosSteps: ["Safari brauzerida oching", "Pastdagi <b>Ulashish</b> ⬆️ tugmasini bosing", "<b>«Ekranga qo'shish»</b> (Add to Home Screen) ni tanlang", "<b>Qo'shish</b> tugmasini bosing — tayyor!"],
     andTitle: "Android'ga o'rnatish", andSteps: ["Chrome brauzerida oching", "Yuqoridagi <b>⋮</b> menyuni bosing", "<b>«Ilovani o'rnatish»</b> ni tanlang", "Tasdiqlang — ilova ekranda paydo bo'ladi"],
     installed: "Ilova o'rnatilgan ✅", sajda: "Sajda oyati",
+    dragHint: "👆 Varaqni barmoq bilan ushlab o'ngga suring",
+    subTitle: "📢 Obuna bo'ling", subText: "Ilovadan foydalanish uchun quyidagi kanallarga obuna bo'ling:", subCheck: "✅ Obuna bo'ldim", subNot: "Hali hamma kanallarga obuna bo'lmadingiz",
   },
   ru: {
     brand: "Проект Эркинова", title: "Священный Коран", subtitle: "3D мусхаф · перевод на узбекский и русский",
@@ -42,6 +44,8 @@ export const STR = {
     iosTitle: "Установка на iPhone", iosSteps: ["Откройте в Safari", "Нажмите <b>Поделиться</b> ⬆️ внизу", "Выберите <b>«На экран Домой»</b>", "Нажмите <b>Добавить</b> — готово!"],
     andTitle: "Установка на Android", andSteps: ["Откройте в Chrome", "Нажмите меню <b>⋮</b> сверху", "Выберите <b>«Установить приложение»</b>", "Подтвердите — иконка появится на экране"],
     installed: "Приложение установлено ✅", sajda: "Аят земного поклона",
+    dragHint: "👆 Возьмите страницу пальцем и потяните вправо",
+    subTitle: "📢 Подпишитесь", subText: "Чтобы пользоваться приложением, подпишитесь на каналы:", subCheck: "✅ Я подписался", subNot: "Вы ещё не подписались на все каналы",
   },
 };
 

@@ -6,6 +6,7 @@
 <title>Admin panel — Qur'on · Erkinov loyihasi</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="/icons/icon-192.png">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root { --gold:#d4af37; --gold2:#f3d98b; --line:rgba(212,175,55,.3); --card:rgba(255,255,255,.045); --txt:#f3ead0; }
@@ -99,6 +100,14 @@
     </div>
 
     <div class="card">
+      <h2>📢 Majburiy obuna</h2>
+      <p class="muted">Kanal qo'shilsa, foydalanuvchilar botdan va mini ilovadan foydalanishdan oldin unga obuna bo'lishi shart. Avval botni kanalga <b>admin</b> qiling.</p>
+      <div id="channels" class="muted">—</div>
+      <div class="row"><input type="text" id="chRef" placeholder="@kanal_nomi yoki t.me/kanal havolasi" style="flex:1"><button class="btn gold" id="chAdd">➕ Qo'shish</button></div>
+      <div class="err" id="chErr"></div>
+    </div>
+
+    <div class="card">
       <h2>👥 Foydalanuvchilar</h2>
       <div class="row" style="margin-top:0"><input type="text" id="q" placeholder="Ism, username yoki ID bo'yicha qidirish" style="flex:1"><button class="btn" id="more">Yana 50 ta</button></div>
       <div class="tbl" style="margin-top:10px"><table>
@@ -171,9 +180,21 @@ async function loadUsers(append) {
   $("#users").innerHTML = append ? $("#users").innerHTML + rows : rows || `<tr><td colspan="8" class="muted">Topilmadi</td></tr>`;
   offset += users.length;
 }
+async function loadChannels(method, extra) {
+  let r;
+  if (method === "POST") r = await api("/api/admin/channels", { ref: extra });
+  else if (method === "DELETE") r = await (await fetch("/api/admin/channels?id=" + encodeURIComponent(extra), { method: "DELETE", headers: { Authorization: "Bearer " + token } })).json();
+  else r = await api("/api/admin/channels");
+  $("#chErr").textContent = r.error || "";
+  const list = r.channels || [];
+  $("#channels").innerHTML = list.length ? `<table>${list.map((c) => `<tr><td>📢 <b>${esc(c.title)}</b></td><td><a href="${esc(c.link)}" target="_blank" style="color:var(--gold2)">${esc(c.link)}</a></td>
+    <td><button class="btn" data-rm="${esc(c.chat_id)}" style="padding:5px 10px">🗑</button></td></tr>`).join("")}</table>` : "Hozircha kanal yo'q — majburiy obuna o'chiq.";
+}
+$("#chAdd").onclick = async () => { const v = $("#chRef").value.trim(); if (!v) return; await loadChannels("POST", v); $("#chRef").value = ""; };
+$("#channels").onclick = (e) => { const id = e.target.dataset?.rm; if (id && confirm("Kanal o'chirilsinmi?")) loadChannels("DELETE", id); };
 let poll;
 async function loadAll() {
-  try { await Promise.all([loadStats(), loadUsers(false)]); pollHistory(); } catch {}
+  try { await Promise.all([loadStats(), loadUsers(false), loadChannels()]); pollHistory(); } catch {}
 }
 async function pollHistory() {
   clearTimeout(poll);
@@ -207,7 +228,16 @@ $("#refresh").onclick = loadAll;
 let qt; $("#q").oninput = () => { clearTimeout(qt); qt = setTimeout(() => loadUsers(false), 300); };
 $("#more").onclick = () => loadUsers(true);
 renderPreview();
-token ? showPanel() : showLogin();
+(async () => {
+  const TG = window.Telegram?.WebApp;
+  if (TG && TG.initData) {
+    try { TG.ready(); TG.expand(); } catch {}
+    const r = await fetch("/api/admin/tg-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ initData: TG.initData }) });
+    const j = await r.json().catch(() => ({}));
+    if (j.token) { token = j.token; localStorage.setItem("q:adminToken", token); }
+  }
+  token ? showPanel() : showLogin();
+})();
 </script>
 </body>
 </html>

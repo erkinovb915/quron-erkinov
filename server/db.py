@@ -110,6 +110,12 @@ SCHEMA = [
         status TEXT DEFAULT 'queued',
         created_at TEXT
     )""",
+    """CREATE TABLE IF NOT EXISTS channels (
+        chat_id TEXT PRIMARY KEY,
+        title TEXT,
+        link TEXT,
+        created_at TEXT
+    )""",
     """CREATE TABLE IF NOT EXISTS daily_reads (
         user_id TEXT,
         day TEXT,
@@ -119,9 +125,20 @@ SCHEMA = [
 ]
 
 
+MIGRATIONS = [
+    "ALTER TABLE broadcasts ADD COLUMN src_chat BIGINT",
+    "ALTER TABLE broadcasts ADD COLUMN src_msg BIGINT",
+]
+
+
 def init_sync():
     for stmt in SCHEMA:
         _run(stmt, (), "none")
+    for stmt in MIGRATIONS:
+        try:
+            _run(stmt, (), "none")
+        except Exception:
+            pass  # ustun allaqachon bor
 
 
 async def init():
@@ -229,3 +246,19 @@ async def stats():
         "today_readers": today_active["c"], "today_pages": int(today_pages_row["c"]),
         "uz": uz["c"], "ru": ru["c"], "reminders": reminders["c"],
     }
+
+
+# ---------- majburiy obuna kanallari ----------
+
+async def list_channels():
+    return await q_all("SELECT * FROM channels ORDER BY created_at")
+
+
+async def add_channel(chat_id: str, title: str, link: str):
+    await execute("DELETE FROM channels WHERE chat_id = ?", (chat_id,))
+    await execute("INSERT INTO channels (chat_id, title, link, created_at) VALUES (?, ?, ?, ?)",
+                  (chat_id, title, link, now_iso()))
+
+
+async def remove_channel(chat_id: str):
+    await execute("DELETE FROM channels WHERE chat_id = ?", (chat_id,))

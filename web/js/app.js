@@ -32,6 +32,8 @@ const S = {
   meta: null,
   busy: false,
   current: [],
+  ready: new Map(),
+  justDragged: 0,
 };
 if (!S.webId) {
   S.webId = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
@@ -63,10 +65,35 @@ async function syncUser() {
     store.set("progress", S.progress);
   }
   if (IN_TG && u.lang && u.lang !== S.lang && !store.get("langChosen", false)) setLang(u.lang, false);
+  renderSubGate(u.subscribe || []);
   updateIntro();
   updateToday();
   renderTgBox();
 }
+
+// Majburiy obuna oynasi (faqat Telegram mini ilovada)
+function renderSubGate(list) {
+  const gate = $("#subGate");
+  if (!list.length) { gate.hidden = true; return; }
+  $("#subTitle").textContent = t("subTitle");
+  $("#subText").textContent = t("subText");
+  $("#subCheck").textContent = t("subCheck");
+  $("#subList").innerHTML = list.map((c) => `<a href="${esc(c.link)}" data-link="${esc(c.link)}">📢 ${esc(c.title)}</a>`).join("");
+  gate.hidden = false;
+}
+document.addEventListener("click", async (e) => {
+  const a = e.target.closest("#subList a");
+  if (a) {
+    e.preventDefault();
+    if (IN_TG && TG.openTelegramLink && a.dataset.link.includes("t.me/")) TG.openTelegramLink(a.dataset.link);
+    else window.open(a.dataset.link, "_blank");
+    return;
+  }
+  if (e.target.id === "subCheck") {
+    const u = await api("/api/auth", { recheck: true });
+    if (u) { S.user = u; renderSubGate(u.subscribe || []); if ((u.subscribe || []).length) { toast(t("subNot")); haptic("rigid"); } else haptic("medium"); }
+  }
+});
 
 let saveTimer = null;
 function saveProgress(page, surah, ayah, immediate = false) {
@@ -247,98 +274,115 @@ function updateToday() {
   $("#bbToday").textContent = `📅 ${t("today")}: ${n}`;
 }
 
+async function preparePage(page) {
+  const key = `${page}:${S.lang}:${S.mode}`;
+  if (S.ready.has(key)) return S.ready.get(key);
+  const ayahs = await loadPage(page, S.lang);
+  const prepared = { ayahs, html: pageHTML(page, ayahs) };
+  S.ready.set(key, prepared);
+  if (S.ready.size > 12) S.ready.delete(S.ready.keys().next().value);
+  return prepared;
+}
+
+function commitPage(page, ayahs) {
+  S.page = page;
+  if (ayahs) {
+    S.current = ayahs;
+    const keepAyah = S.progress.page === page ? S.progress : null;
+    if (!keepAyah) saveProgress(page, ayahs[0].s, ayahs[0].n);
+    // Qo'shni sahifalarni oldindan tayyorlab qo'yamiz — barmoq bilan varaqlash darrov ishlashi uchun
+    for (const p of [page + 1, page - 1, page + 2]) {
+      if (p >= 1 && p <= TOTAL) preparePage(p).catch(() => { });
+    }
+  }
+  updateHeader();
+  history.replaceState(null, "", `?p=${page}`);
+}
+
 async function renderPage(page, dir) {
   page = Math.max(1, Math.min(TOTAL, page));
   if (S.busy) return;
   S.busy = true;
   const pageEl = $("#page");
   const prevHTML = pageEl.innerHTML;
-  let ayahs;
+  let ayahs = null;
   let html;
   const loader = setTimeout(() => { if (!dir) pageEl.innerHTML = loadingHTML(); }, 150);
   try {
-    ayahs = await loadPage(page, S.lang);
-    html = pageHTML(page, ayahs);
+    if (!dir) S.ready.delete(`${page}:${S.lang}:${S.mode}`); // rejim/til o'zgarganda yangidan chizamiz
+    const prepared = await preparePage(page);
+    ayahs = prepared.ayahs;
+    html = prepared.html;
   } catch {
     html = errorHTML(page);
-    ayahs = null;
   }
   clearTimeout(loader);
 
   if (dir && prevHTML) await flipAnimation(prevHTML, html, dir);
   else pageEl.innerHTML = html;
-
-  S.page = page;
-  if (ayahs) {
-    S.current = ayahs;
-    const keepAyah = S.progress.page === page ? S.progress : null;
-    if (!keepAyah) saveProgress(page, ayahs[0].s, ayahs[0].n);
-    prefetch(page + 1, S.lang);
-    prefetch(page - 1, S.lang);
-  }
-  updateHeader();
-  history.replaceState(null, "", `?p=${page}`);
+  commitPage(page, ayahs);
   S.busy = false;
 }
 
-// ---------------- 3D varaq animatsiyasi ----------------
+// ---------------- 3D varaq ----------------
 // Qur'on o'ngdan chapga o'qiladi: keyingi sahifaga o'tishda varaq chap chetidan ko'tarilib, o'ngga ag'dariladi.
-function flipAnimation(oldHTML, newHTML, dir) {
-  return new Promise((resolve) => {
-    const book = $("#book");
-    const pageEl = $("#page");
-    const forward = dir > 0;
-    flipSound();
-    haptic("light");
+// makeLeaf — varaqni boshqaruvchi: set(0..1) bilan barmoq ortidan yuradi, finish() bilan oxiriga yetadi.
+function makeLeaf(oldHTML, newHTML, forward) {
+  const book = $("#book");
+  const pageEl = $("#page");
+  pageEl.innerHTML = forward ? newHTML : oldHTML;
+  const leaf = document.createElement("div");
+  leaf.className = "leaf";
+  leaf.style.transformOrigin = "right center";
+  leaf.innerHTML = `<div class="leaf-face leaf-front">${forward ? oldHTML : newHTML}</div>
+    <div class="leaf-face leaf-back"></div><div class="leaf-shade"></div>`;
+  const under = document.createElement("div");
+  under.className = "under-shade";
+  book.append(under, leaf);
+  const shade = leaf.querySelector(".leaf-shade");
+  const start = forward ? 0 : 180;
+  const end = forward ? 180 : 0;
+  let cur = 0;
 
-    // Ostidagi sahifa: yangisi (oldinga) — varaq ag'darilgach ochiladi
-    pageEl.innerHTML = forward ? newHTML : oldHTML;
-    const leaf = document.createElement("div");
-    leaf.className = "leaf";
-    leaf.style.transformOrigin = "right center";
-    leaf.innerHTML = `<div class="leaf-face leaf-front">${forward ? oldHTML : ""}</div>
-      <div class="leaf-face leaf-back">${forward ? "" : ""}</div><div class="leaf-shade"></div>`;
-    const under = document.createElement("div");
-    under.className = "under-shade";
-    book.append(under, leaf);
-
-    if (!forward) {
-      // Orqaga: eski sahifa ostida qoladi, yangi sahifa o'ngdan qaytib keladi
-      leaf.querySelector(".leaf-front").innerHTML = newHTML;
-    }
-    const start = forward ? 0 : -180;
-    const end = forward ? -180 : 0;
-    const dur = 750;
-    const t0 = performance.now();
-    const shade = leaf.querySelector(".leaf-shade");
-    const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
-
-    function frame(now) {
-      const p = Math.min(1, (now - t0) / dur);
-      const e = ease(p);
-      const angle = start + (end - start) * e;
-      const lift = Math.sin(e * Math.PI) * 40;
-      leaf.style.transform = `translateZ(${lift}px) rotateY(${angle}deg)`;
-      const k = Math.abs(Math.sin((angle / 180) * Math.PI));
-      shade.style.opacity = String(k * 0.6);
-      shade.style.background = `linear-gradient(${Math.abs(angle) < 90 ? 90 : 270}deg, rgba(0,0,0,.35), rgba(255,255,255,.12) 55%, transparent)`;
-      under.style.opacity = String(k * 0.7);
-      if (p < 1) requestAnimationFrame(frame);
-      else {
-        if (!forward) pageEl.innerHTML = newHTML;
-        leaf.remove();
-        under.remove();
-        resolve();
+  function set(p) {
+    cur = Math.max(0, Math.min(1, p));
+    const angle = start + (end - start) * cur;
+    const lift = Math.sin(cur * Math.PI) * 40;
+    leaf.style.transform = `translateZ(${lift}px) rotateY(${angle}deg)`;
+    const k = Math.abs(Math.sin((angle / 180) * Math.PI));
+    shade.style.opacity = String(k * 0.6);
+    shade.style.background = `linear-gradient(${Math.abs(angle) < 90 ? 90 : 270}deg, rgba(0,0,0,.35), rgba(255,255,255,.12) 55%, transparent)`;
+    under.style.opacity = String(k * 0.7);
+  }
+  function animateTo(target, ms, easeInOut) {
+    return new Promise((resolve) => {
+      const from = cur;
+      const t0 = performance.now();
+      const dur = Math.max(120, ms * Math.abs(target - from));
+      const ease = easeInOut ? (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2) : (x) => 1 - Math.pow(1 - x, 3);
+      function frame(now) {
+        const x = Math.min(1, (now - t0) / dur);
+        set(from + (target - from) * ease(x));
+        if (x < 1) requestAnimationFrame(frame); else resolve();
       }
-    }
-    if (!forward) {
-      // orqaga: varaq o'ng tomonda (180°) turibdi va joyiga qaytadi; ostida eski sahifa
-      pageEl.innerHTML = oldHTML;
-      leaf.style.transform = "rotateY(-180deg)";
-      leaf.querySelector(".leaf-front").innerHTML = newHTML;
-    }
-    requestAnimationFrame(frame);
-  });
+      requestAnimationFrame(frame);
+    });
+  }
+  async function finish(complete, ms = 650, easeInOut = false) {
+    await animateTo(complete ? 1 : 0, ms, easeInOut);
+    pageEl.innerHTML = complete ? newHTML : oldHTML;
+    leaf.remove();
+    under.remove();
+  }
+  set(0);
+  return { set, finish };
+}
+
+async function flipAnimation(oldHTML, newHTML, dir) {
+  flipSound();
+  haptic("light");
+  const leaf = makeLeaf(oldHTML, newHTML, dir > 0);
+  await leaf.finish(true, 780, true);
 }
 
 function go(delta) {
@@ -398,6 +442,7 @@ function openBook(page) {
     document.body.classList.add("reading");
     S.page = 0;
     renderPage(page, null);
+    if (!store.get("dragHint", false)) { store.set("dragHint", true); setTimeout(() => toast(t("dragHint")), 1800); }
     updateBackButton();
   }, 1000);
 }
@@ -591,6 +636,7 @@ function bind() {
   });
 
   $("#page").addEventListener("click", (e) => {
+    if (Date.now() - S.justDragged < 400) return;
     const retry = e.target.closest("[data-retry]");
     if (retry) { renderPage(parseInt(retry.dataset.retry, 10), null); return; }
     const ay = e.target.closest(".ayah");
@@ -624,15 +670,65 @@ function bind() {
     else if (e.key === "Escape") { const open = $$(".sheet").find((s) => !s.hidden); if (open) closeSheet(open); }
   });
 
-  // Barmoq bilan surish: o'ngga surish — keyingi sahifa
-  let sx = 0, sy = 0, st = 0;
+  // Qo'lda varaqlash: varaqni barmoq/sichqoncha bilan ushlab sudrang (o'ngga — keyingi, chapga — oldingi)
   const stage = $("#stage");
-  stage.addEventListener("touchstart", (e) => { const p = e.touches[0]; sx = p.clientX; sy = p.clientY; st = Date.now(); }, { passive: true });
-  stage.addEventListener("touchend", (e) => {
-    const p = e.changedTouches[0];
-    const dx = p.clientX - sx, dy = p.clientY - sy;
-    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.4 && Date.now() - st < 700) go(dx > 0 ? 1 : -1);
-  }, { passive: true });
+  let drag = null;
+  stage.addEventListener("pointerdown", (e) => {
+    if (e.button > 0 || S.busy || e.target.closest(".nav-arrow, button, a")) return;
+    drag = { x0: e.clientX, y0: e.clientY, t0: performance.now(), id: e.pointerId, active: false, p: 0 };
+  });
+  stage.addEventListener("pointermove", (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x0;
+    const dy = e.clientY - drag.y0;
+    if (!drag.active) {
+      if (Math.abs(dx) < 12 || Math.abs(dx) < Math.abs(dy) * 1.2) {
+        if (Math.abs(dy) > 16) drag = null; // vertikal — sahifa ichida aylantirish
+        return;
+      }
+      const dir = dx > 0 ? 1 : -1;
+      const target = S.page + dir;
+      if (target < 1 || target > TOTAL || S.busy) { drag = null; haptic("rigid"); return; }
+      const ready = S.ready.get(`${target}:${S.lang}:${S.mode}`);
+      if (!ready) { drag = null; go(dir); return; }
+      Object.assign(drag, { active: true, dir, target, ready, x0: e.clientX - Math.sign(dx) * 12 });
+      S.busy = true;
+      $("#ayahPop").hidden = true;
+      document.body.classList.add("dragging");
+      drag.leaf = makeLeaf($("#page").innerHTML, ready.html, dir > 0);
+      flipSound();
+      haptic("light");
+      try { stage.setPointerCapture(e.pointerId); } catch { }
+    }
+    // Varaq cheti barmoq ostida qolishi uchun: chet x = w·(1 − cos θ)
+    const rect = $("#book").getBoundingClientRect();
+    const w = rect.width;
+    const clampCos = (v) => Math.max(-1, Math.min(1, v));
+    if (drag.dir > 0) {
+      drag.p = Math.acos(clampCos(1 - (e.clientX - drag.x0) / w)) / Math.PI;
+    } else {
+      // orqaga: oldingi varaq o'ng tomondan keladi, chet barmoq turgan joyda
+      drag.p = 1 - Math.acos(clampCos(1 - (e.clientX - rect.left) / w)) / Math.PI;
+      if (drag.p0 === undefined) drag.p0 = drag.p;
+    }
+    drag.leaf.set(drag.p);
+  });
+  const endDrag = async (e) => {
+    if (!drag || (e && e.pointerId !== drag.id)) return;
+    const d = drag;
+    drag = null;
+    if (!d.active) return;
+    S.justDragged = Date.now();
+    document.body.classList.remove("dragging");
+    const secs = (performance.now() - d.t0) / 1000;
+    const moved = d.p - (d.p0 ?? 0);
+    const complete = d.dir > 0 ? (d.p > 0.3 || (d.p > 0.08 && d.p / secs > 0.9)) : (d.p > 0.72 || (moved > 0.06 && moved / secs > 0.5));
+    await d.leaf.finish(complete, complete ? 520 : 380);
+    if (complete) { haptic("light"); commitPage(d.target, d.ready.ayahs); }
+    S.busy = false;
+  };
+  stage.addEventListener("pointerup", endDrag);
+  stage.addEventListener("pointercancel", endDrag);
 
   // Chiroq yorug'ligi
   const track = (x, y) => { if (S.lamp) moveLight(x, y); };
