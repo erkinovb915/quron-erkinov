@@ -19,9 +19,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://api.alquran.cloud">
-<link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css?v=11">
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="/css/style.css?v=12">
+<script>
+  // Telegram skripti faqat Telegram ichida yuklanadi: oddiy brauzer va ilovada sahifa telegram.org'ni kutib qolmaydi
+  (function () {
+    var inTg = /tgWebApp/.test(location.hash + location.search) || !!window.TelegramWebviewProxy || !!(window.external && "notify" in window.external);
+    try { inTg = inTg || !!sessionStorage.getItem("__telegram__initParams"); } catch (e) { }
+    if (inTg) document.write('<script src="https://telegram.org/js/telegram-web-app.js"><\/script>');
+  })();
+</script>
 </head>
 <body>
 <canvas id="sky" aria-hidden="true"></canvas>
@@ -330,6 +337,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script type="module" src="/js/app.js?v=11"></script>
+<script type="module" src="/js/app.js?v=12"></script>
 </body>
 </html>
