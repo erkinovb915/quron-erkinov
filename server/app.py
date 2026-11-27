@@ -15,7 +15,7 @@ from starlette.responses import FileResponse, JSONResponse, Response
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 
-from . import bot, db, subs, prayer, notify, webpush
+from . import bot, db, subs, prayer, notify, webpush, android
 from datetime import date as _date, timedelta as _td
 from . import telegram as tg
 
@@ -404,6 +404,9 @@ class CachedStatic(StaticFiles):
 
 routes = [
     Route("/health", health),
+    Route("/apk", android.apk),
+    Route("/.well-known/assetlinks.json", android.assetlinks),
+    Route("/ci/keystore", android.ci_keystore, methods=["POST"]),
     Route("/api/config", api_config),
     Route("/api/stickers", api_stickers),
     Route("/api/auth", api_auth, methods=["POST"]),

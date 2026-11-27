@@ -1,10 +1,10 @@
 // Qur'oni Karim — Erkinov loyihasi. Sayt, Telegram Mini App va PWA uchun yagona ilova.
-import { loadMeta, loadPage, prefetch, juzOfPage, toArabicNum } from "./quran.js?v=10";
-import { SURAH_NAMES } from "./surahs.js?v=10";
-import { STR, tr } from "./i18n.js?v=10";
-import { startSky } from "./sky.js?v=10";
-import { initExtras } from "./extras.js?v=10";
-import { initSections } from "./sections.js?v=10";
+import { loadMeta, loadPage, prefetch, juzOfPage, toArabicNum } from "./quran.js?v=11";
+import { SURAH_NAMES } from "./surahs.js?v=11";
+import { STR, tr } from "./i18n.js?v=11";
+import { startSky } from "./sky.js?v=11";
+import { initExtras } from "./extras.js?v=11";
+import { initSections } from "./sections.js?v=11";
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -655,7 +655,9 @@ document.addEventListener("click", (e) => {
 
 // ---------------- PWA o'rnatish ----------------
 let deferredInstall = null;
-const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+if (new URLSearchParams(location.search).get("src") === "apk") { try { localStorage.setItem("q:apk", "1"); } catch { } }
+const IN_APK = (() => { try { return localStorage.getItem("q:apk") === "1"; } catch { return false; } })();
+const isStandalone = () => IN_APK || matchMedia("(display-mode: standalone)").matches || navigator.standalone;
 const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferredInstall = e; });
 window.addEventListener("appinstalled", () => toast(t("installed")));
@@ -674,19 +676,20 @@ function showInstallGuide() {
   if (IN_TG) {
     const canHome = !!(TG.addToHomeScreen && TG.isVersionAtLeast && TG.isVersionAtLeast("8.0"));
     box.innerHTML = `<div class="big">📲</div><p class="inst-p">${t("installTgText")}</p>
-      <div class="inst-btns">${canHome ? `<button class="btn btn-gold" id="instHome">📲 ${t("instHome")}</button>` : ""}
-      <button class="btn ${canHome ? "" : "btn-gold"}" id="instBrowser">🌐 ${t("instBrowser")}</button></div>`;
+      <div class="inst-btns"><button class="btn btn-gold" id="instApk">🤖 ${t("instApk")}</button>${canHome ? `<button class="btn" id="instHome">📲 ${t("instHome")}</button>` : ""}
+      <button class="btn" id="instBrowser">🌐 ${t("instBrowser")}</button></div>`;
+    $("#instApk").onclick = () => { haptic(); const u = location.origin + "/apk"; try { TG.openLink(u); } catch { location.href = u; } };
     const hb = $("#instHome");
     if (hb) {
       hb.onclick = () => { haptic(); try { TG.addToHomeScreen(); } catch { toast(t("instBrowser")); } };
       // Kompyuter/veb Telegram'da bu imkoniyat yo'q — tugmani yashiramiz, o'rnatilgan bo'lsa belgilaymiz
       try {
         TG.checkHomeScreenStatus && TG.checkHomeScreenStatus((st) => {
-          if (st === "unsupported") { hb.remove(); $("#instBrowser").classList.add("btn-gold"); }
+          if (st === "unsupported") hb.remove();
           else if (st === "added") { hb.disabled = true; hb.textContent = "✅ " + t("instAdded"); }
         });
       } catch { }
-      if (["tdesktop", "web", "weba", "webk", "macos", "unknown"].includes(TG.platform)) { hb.remove(); $("#instBrowser").classList.add("btn-gold"); }
+      if (["tdesktop", "web", "weba", "webk", "macos", "unknown"].includes(TG.platform)) hb.remove();
     }
     $("#instBrowser").onclick = () => { haptic(); const u = location.origin + "/?install=1"; try { TG.openLink(u, { try_browser: "chrome" }); } catch { window.open(u, "_blank"); } };
   } else if (isStandalone()) {
@@ -694,7 +697,8 @@ function showInstallGuide() {
   } else {
     const steps = isIOS ? t("iosSteps") : t("andSteps");
     box.innerHTML = `<div class="big">${isIOS ? "" : "🤖"}📲</div><h4>${isIOS ? t("iosTitle") : t("andTitle")}</h4>
-      <div class="inst-btns" id="instNowWrap" ${deferredInstall ? "" : "hidden"}><button class="btn btn-gold" id="instNow">📲 ${t("installShort")}</button></div>
+      ${isIOS ? "" : `<div class="inst-btns"><a class="btn btn-gold" href="/apk" id="instApk">🤖 ${t("instApk")}</a></div>`}
+      <div class="inst-btns" id="instNowWrap" ${deferredInstall ? "" : "hidden"}><button class="btn ${isIOS ? "btn-gold" : ""}" id="instNow">📲 ${t("installShort")}</button></div>
       <ol>${steps.map((s) => `<li>${s}</li>`).join("")}</ol>`;
     $("#instNow").onclick = async () => { haptic(); await doInstall(); closeSheet($("#sheetInstall")); };
   }

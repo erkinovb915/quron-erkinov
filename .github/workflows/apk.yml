@@ -1,0 +1,68 @@
+# Android ilova (APK) ni yig'adi va "apk" relizga joylaydi.
+# Imzo kaliti serverdan GitHub OIDC tokeni bilan olinadi (repozitoriyda saqlanmaydi).
+name: Android APK
+on:
+  push:
+    branches: [main]
+    paths: ["android/**", ".github/workflows/apk.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+  id-token: write
+concurrency: apk
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.14.3"
+      - name: Imzo kalitini tayyorlash
+        run: |
+          set -e
+          TOKEN=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=quron-erkinov-apk" | jq -r .value)
+          for i in $(seq 1 12); do
+            if curl -fsS --max-time 90 -X POST -H "Authorization: Bearer $TOKEN" https://quron-erkinov.onrender.com/ci/keystore -o key.json; then break; fi
+            echo "Server tayyor emas, qayta urinish..."; sleep 20
+          done
+          export KEY=$(jq -r .key key.json); rm -f key.json
+          test -n "$KEY" && test "$KEY" != "null"
+          echo "::add-mask::$KEY"
+          KS_PASS=$(printf '%s' "$KEY:ks" | sha256sum | cut -c1-32)
+          echo "::add-mask::$KS_PASS"
+          echo "KS_PASS=$KS_PASS" >> "$GITHUB_ENV"
+          if [ -f android/release.jks.enc ]; then
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:KEY -in android/release.jks.enc -out android/release.jks
+          else
+            # Birinchi marta: yangi imzo kaliti yaratiladi va repozitoriyga faqat shifrlangan holda saqlanadi
+            keytool -genkeypair -keystore android/release.jks -storetype PKCS12 -alias quron -keyalg RSA -keysize 2048 -validity 12000 \
+              -storepass "$KS_PASS" -keypass "$KS_PASS" -dname "CN=Erkinov Boburjon, OU=Erkinov loyihasi, O=Erkinov, L=Qoqon, C=UZ"
+            openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -pass env:KEY -in android/release.jks -out android/release.jks.enc
+            keytool -list -v -keystore android/release.jks -storepass "$KS_PASS" | grep -m1 "SHA256:" | awk '{print $2}' > android/cert-sha256.txt
+            cat android/cert-sha256.txt
+            git config user.name "github-actions"; git config user.email "actions@users.noreply.github.com"
+            git add android/release.jks.enc android/cert-sha256.txt
+            git commit -m "Android imzo kaliti (shifrlangan) va sertifikat izi"
+            git pull --rebase origin main && git push origin HEAD:main
+          fi
+      - name: APK yig'ish
+        working-directory: android
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: gradle assembleRelease --no-daemon --stacktrace
+      - name: Relizga joylash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk Quron-Erkinov.apk
+          ls -la Quron-Erkinov.apk
+          gh release view apk >/dev/null 2>&1 || gh release create apk --title "Qur'oni Karim — Android ilova" --notes "Qur'oni Karim (Erkinov loyihasi) Android ilovasi. Yuklab oling va o'rnating: Quron-Erkinov.apk" --latest
+          gh release upload apk Quron-Erkinov.apk --clobber
+      - name: Kalitni o'chirish
+        if: always()
+        run: rm -f android/release.jks

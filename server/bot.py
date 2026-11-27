@@ -47,6 +47,7 @@ def main_menu(user: dict, admin: bool = False) -> dict:
 
 def install_markup(lang: str) -> dict:
     return {"inline_keyboard": [
+        [{"text": t(lang, "inst_apk"), "url": f"{PUBLIC_URL}/apk"}],
         [{"text": t(lang, "inst_tg"), "web_app": {"url": f"{PUBLIC_URL}/?view=install"}}],
         [{"text": t(lang, "inst_web"), "url": f"{PUBLIC_URL}/?install=1"}],
     ]}

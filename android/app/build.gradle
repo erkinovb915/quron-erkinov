@@ -1,0 +1,41 @@
+plugins { id "com.android.application" }
+
+def buildNo = (System.getenv("BUILD_NUMBER") ?: "1") as Integer
+
+android {
+    namespace "uz.erkinov.quron"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "uz.erkinov.quron"
+        minSdk 21
+        targetSdk 35
+        versionCode buildNo
+        versionName "1.0." + buildNo
+    }
+
+    signingConfigs {
+        release {
+            storeFile file(System.getenv("KS_PATH") ?: "../release.jks")
+            storePassword System.getenv("KS_PASS")
+            keyAlias "quron"
+            keyPassword System.getenv("KS_PASS")
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation "com.google.androidbrowserhelper:androidbrowserhelper:2.5.0"
+}
