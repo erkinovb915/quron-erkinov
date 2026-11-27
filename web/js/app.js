@@ -1,10 +1,10 @@
 // Qur'oni Karim — Erkinov loyihasi. Sayt, Telegram Mini App va PWA uchun yagona ilova.
-import { loadMeta, loadPage, prefetch, juzOfPage, toArabicNum } from "./quran.js?v=9";
-import { SURAH_NAMES } from "./surahs.js?v=9";
-import { STR, tr } from "./i18n.js?v=9";
-import { startSky } from "./sky.js?v=9";
-import { initExtras } from "./extras.js?v=9";
-import { initSections } from "./sections.js?v=9";
+import { loadMeta, loadPage, prefetch, juzOfPage, toArabicNum } from "./quran.js?v=10";
+import { SURAH_NAMES } from "./surahs.js?v=10";
+import { STR, tr } from "./i18n.js?v=10";
+import { startSky } from "./sky.js?v=10";
+import { initExtras } from "./extras.js?v=10";
+import { initSections } from "./sections.js?v=10";
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -666,11 +666,31 @@ async function doInstall() {
     deferredInstall = null;
     return;
   }
-  const steps = isIOS ? t("iosSteps") : t("andSteps");
-  $("#installSteps").innerHTML = `<div class="big">${isIOS ? "" : "🤖"}📲</div><h4>${isIOS ? t("iosTitle") : t("andTitle")}</h4>
-    <ol>${steps.map((s) => `<li>${s}</li>`).join("")}</ol>`;
+  showInstallGuide();
+}
+// O'rnatish oynasi: Telegram ichida — bosh ekranga qo'shish yoki brauzerda ochish; brauzerda — tugma yoki qo'llanma
+function showInstallGuide() {
+  const box = $("#installSteps");
+  if (IN_TG) {
+    const canHome = !!(TG.addToHomeScreen && TG.isVersionAtLeast && TG.isVersionAtLeast("8.0"));
+    box.innerHTML = `<div class="big">📲</div><h4>${t("installTitle")}</h4><p class="inst-p">${t("installTgText")}</p>
+      <div class="inst-btns">${canHome ? `<button class="btn btn-gold" id="instHome">📲 ${t("instHome")}</button>` : ""}
+      <button class="btn ${canHome ? "" : "btn-gold"}" id="instBrowser">🌐 ${t("instBrowser")}</button></div>`;
+    const hb = $("#instHome");
+    if (hb) hb.onclick = () => { haptic(); try { TG.addToHomeScreen(); } catch { toast(t("instBrowser")); } };
+    $("#instBrowser").onclick = () => { haptic(); const u = location.origin + "/?install=1"; try { TG.openLink(u, { try_browser: "chrome" }); } catch { window.open(u, "_blank"); } };
+  } else if (isStandalone()) {
+    box.innerHTML = `<div class="big">✅</div><h4>${t("installed")}</h4>`;
+  } else {
+    const steps = isIOS ? t("iosSteps") : t("andSteps");
+    box.innerHTML = `<div class="big">${isIOS ? "" : "🤖"}📲</div><h4>${isIOS ? t("iosTitle") : t("andTitle")}</h4>
+      <div class="inst-btns" id="instNowWrap" ${deferredInstall ? "" : "hidden"}><button class="btn btn-gold" id="instNow">📲 ${t("installShort")}</button></div>
+      <ol>${steps.map((s) => `<li>${s}</li>`).join("")}</ol>`;
+    $("#instNow").onclick = async () => { haptic(); await doInstall(); closeSheet($("#sheetInstall")); };
+  }
   openSheet("#sheetInstall");
 }
+window.addEventListener("beforeinstallprompt", () => { const w = $("#instNowWrap"); if (w) w.hidden = false; });
 if ("serviceWorker" in navigator && !IN_TG) {
   window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => { }));
 }
@@ -720,7 +740,7 @@ function bind() {
   $("#swLamp").onchange = (e) => setLamp(e.target.checked);
   $("#swSound").onchange = (e) => { S.sound = e.target.checked; store.set("sound", S.sound); };
   $("#btnSurahs").onclick = () => { renderList(); openSheet("#sheetSurahs"); };
-  $("#btnMenu").onclick = () => { renderStats(); renderTgBox(); $("#installRow").hidden = !!isStandalone() || IN_TG; openSheet("#sheetMenu"); };
+  $("#btnMenu").onclick = () => { renderStats(); renderTgBox(); $("#installRow").hidden = !!isStandalone(); openSheet("#sheetMenu"); };
   $("#btnGoto").onclick = () => {
     $("#gotoInput").value = S.page;
     openSheet("#sheetGoto");
@@ -924,7 +944,9 @@ async function init() {
   // ?view=... yoki Telegram to'g'ridan-to'g'ri havolasi: t.me/QuronAppBot/quron?startapp=qibla
   const startParam = IN_TG ? (TG.initDataUnsafe?.start_param || "") : "";
   const view = new URLSearchParams(location.search).get("view") || (/^[a-z]+$/.test(startParam) ? startParam : null);
-  if (view === "prayer" || view === "tasbih") {
+  if (view === "install" || new URLSearchParams(location.search).get("install")) {
+    setTimeout(showInstallGuide, 600);
+  } else if (view === "prayer" || view === "tasbih") {
     setTimeout(() => (view === "prayer" ? EX.openPrayer() : EX.openTasbih()), 300);
   } else if (["duas", "names", "qibla", "calendar", "islam", "donate", "stickers"].includes(view)) {
     setTimeout(() => SEC.open(view), 300);

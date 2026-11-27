@@ -34,6 +34,10 @@ T = {
         "prayer_btn": "🕌 Namoz vaqtlari",
         "tasbih_btn": "📿 Tasbeh",
         "tasbih_open": "📿 Tasbehni ochish uchun tugmani bosing 👇",
+        "install_btn": "📲 Telefonga o'rnatish",
+        "install_text": "📲 <b>Ilovani telefoningizga o'rnating</b>\n\nBir bosishda ekraningizda Qur'on ilovasi paydo bo'ladi — xuddi oddiy ilovadek ochiladi.\n\n1️⃣ <b>Bosh ekranga qo'shish</b> — Telegram ichidagi ilova ekraningizga belgi bo'lib qo'shiladi (Android va iPhone).\n2️⃣ <b>Brauzer orqali o'rnatish</b> — sayt Chrome yoki Safari'da ochiladi, u yerda «O'rnatish» tugmasini bosing (iPhone: Ulashish ⬆️ → «Ekranga qo'shish»). Internetsiz ham ishlaydi.",
+        "inst_tg": "📲 Bosh ekranga qo'shish",
+        "inst_web": "🌐 Brauzer orqali o'rnatish",
         "stickers_btn": "🎨 Stikerlar",
         "stickers_text": "🎨 <b>Erkinov loyihasi stikerlari</b>\n\n✨ <b>Animatsion stikerlar</b> — Nurjon bilan salomlashing, tabriklang\n😊 <b>Animatsion emoji</b> — xabar ichida harakatlanadigan emoji\n🕌 <b>Islomiy kartalar</b> — arabcha yozuvli oddiy stikerlar\n\nQo'shish uchun tugmani bosing 👇",
         "stickers_none": "🎨 Stikerlar hali tayyorlanmoqda, birozdan keyin qayta urinib ko'ring.",
@@ -81,7 +85,7 @@ T = {
         "admin_bad": "Parol noto'g'ri.",
         "help": (
             "Buyruqlar:\n/start — bosh menyu\n/davom — qayerda qoldim\n"
-            "/namoz — namoz vaqtlari\n/duolar — duolar va zikrlar\n/qibla — qibla\n/taqvim — taqvim\n/tasbeh — tasbeh\n/ismlar — 99 ism\n/islom — Islom asoslari\n/hissa — loyihaga hissa\n/eslatma — kundalik eslatma\n/til — tilni o'zgartirish"
+            "/namoz — namoz vaqtlari\n/duolar — duolar va zikrlar\n/qibla — qibla\n/taqvim — taqvim\n/tasbeh — tasbeh\n/ismlar — 99 ism\n/islom — Islom asoslari\n/hissa — loyihaga hissa\n/eslatma — kundalik eslatma\n/stikerlar — stikerlar\n/ornatish — telefonga o'rnatish\n/til — tilni o'zgartirish"
         ),
         "stats": "📊 Foydalanuvchilar: {total} (Telegram: {telegram}, sayt: {web})\nBugun o'qiganlar: {today_readers}",
     },
@@ -102,6 +106,10 @@ T = {
         "prayer_btn": "🕌 Время намаза",
         "tasbih_btn": "📿 Тасбих",
         "tasbih_open": "📿 Нажмите кнопку, чтобы открыть тасбих 👇",
+        "install_btn": "📲 Установить на телефон",
+        "install_text": "📲 <b>Установите приложение на телефон</b>\n\nОдно нажатие — и Коран появится на вашем экране как обычное приложение.\n\n1️⃣ <b>На главный экран</b> — значок мини-приложения Telegram на экране (Android и iPhone).\n2️⃣ <b>Через браузер</b> — сайт откроется в Chrome или Safari, нажмите «Установить» (iPhone: Поделиться ⬆️ → «На экран Домой»). Работает и без интернета.",
+        "inst_tg": "📲 На главный экран",
+        "inst_web": "🌐 Установить через браузер",
         "stickers_btn": "🎨 Стикеры",
         "stickers_text": "🎨 <b>Стикеры проекта Эркинова</b>\n\n✨ <b>Анимированные стикеры</b> — приветствия и поздравления с Нурджоном\n😊 <b>Анимированные эмодзи</b> — живые эмодзи прямо в тексте\n🕌 <b>Исламские карточки</b> — обычные стикеры с арабской каллиграфией\n\nНажмите, чтобы добавить 👇",
         "stickers_none": "🎨 Стикеры ещё готовятся, попробуйте чуть позже.",
@@ -149,7 +157,7 @@ T = {
         "admin_bad": "Неверный пароль.",
         "help": (
             "Команды:\n/start — главное меню\n/davom — где я остановился\n"
-            "/namoz — время намаза\n/duolar — дуа и зикры\n/qibla — кибла\n/taqvim — календарь\n/tasbeh — тасбих\n/ismlar — 99 имён\n/islom — основы ислама\n/hissa — поддержать\n/eslatma — напоминание\n/til — сменить язык"
+            "/namoz — время намаза\n/duolar — дуа и зикры\n/qibla — кибла\n/taqvim — календарь\n/tasbeh — тасбих\n/ismlar — 99 имён\n/islom — основы ислама\n/hissa — поддержать\n/eslatma — напоминание\n/stikerlar — стикеры\n/ornatish — установить на телефон\n/til — сменить язык"
         ),
         "stats": "📊 Пользователи: {total} (Telegram: {telegram}, сайт: {web})\nЧитали сегодня: {today_readers}",
     },

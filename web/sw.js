@@ -1,5 +1,5 @@
 // Oflayn ishlash: ilova qobig'i va o'qilgan sahifalar keshda saqlanadi
-const SHELL = "quron-shell-v9";
+const SHELL = "quron-shell-v10";
 const DATA = "quron-data-v1";
 const ASSETS = ["/", "/index.html", "/img/star-tile.svg", "/img/medallion.svg", "/manifest.json", "/icons/icon-192.png"];
 

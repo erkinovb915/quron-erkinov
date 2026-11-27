@@ -38,10 +38,18 @@ def main_menu(user: dict, admin: bool = False) -> dict:
         [{"text": t(lang, "calendar_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=calendar"}}, {"text": t(lang, "names_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=names"}}],
         [{"text": t(lang, "islam_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=islam"}}, {"text": t(lang, "donate_btn"), "callback_data": "don"}],
         [{"text": t(lang, "stickers_btn"), "callback_data": "stk"}, {"text": t(lang, "lang"), "callback_data": "lang"}],
+        [{"text": t(lang, "install_btn"), "callback_data": "inst"}],
     ]
     if admin:
         rows.append([{"text": "👑 Admin menyu", "callback_data": "adm:menu"}])
     return {"inline_keyboard": rows}
+
+
+def install_markup(lang: str) -> dict:
+    return {"inline_keyboard": [
+        [{"text": t(lang, "inst_tg"), "web_app": {"url": f"{PUBLIC_URL}/?view=install"}}],
+        [{"text": t(lang, "inst_web"), "url": f"{PUBLIC_URL}/?install=1"}],
+    ]}
 
 
 def open_button(user: dict) -> dict:
@@ -252,6 +260,7 @@ async def _on_message(msg: dict):
     frm = msg.get("from") or {}
     if not frm.get("id") or msg.get("chat", {}).get("type") != "private":
         return
+    is_new = not await db.get_user(f"tg:{frm['id']}")
     user = await _user_from(frm)
     chat = msg["chat"]["id"]
     lang = user.get("lang") or "uz"
@@ -287,6 +296,10 @@ async def _on_message(msg: dict):
 
     if cmd == "/start":
         await tg.send(chat, t(lang, "welcome", name=_esc(frm.get("first_name") or "do'st")), main_menu(user, admin))
+        if is_new:
+            await tg.send(chat, t(lang, "install_text"), install_markup(lang))
+    elif cmd in ("/ornatish", "/install"):
+        await tg.send(chat, t(lang, "install_text"), install_markup(lang))
     elif cmd in ("/davom", "/qayerda", "/where"):
         await tg.send(chat, await where_text(user), open_button(user))
     elif cmd in ("/eslatma", "/remind"):
@@ -366,11 +379,15 @@ async def _on_callback(cq: dict):
             except tg.TgError:
                 pass
             await tg.send(chat, t(lang, "welcome", name=_esc(frm.get("first_name") or "do'st")), main_menu(user, admin))
+            if int(user.get("pages_read") or 0) == 0:
+                await tg.send(chat, t(lang, "install_text"), install_markup(lang))
     elif not admin and data not in ("lang",) and not data.startswith("setlang:") and await subs.missing_channels(frm["id"]):
         missing = await subs.missing_channels(frm["id"])
         await tg.send(chat, subs.subscribe_text(lang), subs.subscribe_markup(missing, lang))
     elif data == "where":
         await tg.send(chat, await where_text(user), open_button(user))
+    elif data == "inst":
+        await tg.send(chat, t(lang, "install_text"), install_markup(lang))
     elif data == "stk":
         await send_stickers(chat, lang)
     elif data == "don":
@@ -494,11 +511,11 @@ COMMANDS = {
     "uz": [("start", "Bosh menyu"), ("namoz", "🕌 Namoz vaqtlari"), ("davom", "📖 Qayerda qoldim"), ("duolar", "🤲 Duolar va zikrlar"),
            ("qibla", "🧭 Qibla"), ("taqvim", "📅 Taqvim"), ("tasbeh", "📿 Tasbeh"), ("ismlar", "✨ Allohning 99 ismi"),
            ("islom", "☪️ Islom asoslari"), ("hissa", "💝 Loyihaga hissa qo'shish"), ("eslatma", "🔔 Kundalik eslatma"),
-           ("stikerlar", "🎨 Stikerlar"), ("til", "🌐 Tilni o'zgartirish")],
+           ("stikerlar", "🎨 Stikerlar"), ("ornatish", "📲 Telefonga o'rnatish"), ("til", "🌐 Tilni o'zgartirish")],
     "ru": [("start", "Главное меню"), ("namoz", "🕌 Время намаза"), ("davom", "📖 Где я остановился"), ("duolar", "🤲 Дуа и зикры"),
            ("qibla", "🧭 Кибла"), ("taqvim", "📅 Календарь"), ("tasbeh", "📿 Тасбих"), ("ismlar", "✨ 99 имён Аллаха"),
            ("islom", "☪️ Основы ислама"), ("hissa", "💝 Поддержать проект"), ("eslatma", "🔔 Напоминание"),
-           ("stikerlar", "🎨 Стикеры"), ("til", "🌐 Сменить язык")],
+           ("stikerlar", "🎨 Стикеры"), ("ornatish", "📲 Установить на телефон"), ("til", "🌐 Сменить язык")],
 }
 
 
