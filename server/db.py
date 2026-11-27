@@ -186,8 +186,9 @@ async def upsert_tg_user(tg_id: int, first_name: str, username: str, lang: str |
     existing = await get_user(uid)
     if existing:
         await execute(
-            "UPDATE users SET first_name = ?, username = ?, blocked = 0, updated_at = ? WHERE id = ?",
-            (first_name, username, now, uid),
+            # updated_at faqat o'qish joyi o'zgarganda yangilanadi (sayt bilan birlashtirishda solishtiriladi)
+            "UPDATE users SET first_name = ?, username = ?, blocked = 0 WHERE id = ?",
+            (first_name, username, uid),
         )
     else:
         await execute(
