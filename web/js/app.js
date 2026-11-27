@@ -1,10 +1,10 @@
 // Qur'oni Karim — Erkinov loyihasi. Sayt, Telegram Mini App va PWA uchun yagona ilova.
-import { loadMeta, loadPage, prefetch, juzOfPage, toArabicNum } from "./quran.js?v=7";
-import { SURAH_NAMES } from "./surahs.js?v=7";
-import { STR, tr } from "./i18n.js?v=7";
-import { startSky } from "./sky.js?v=7";
-import { initExtras } from "./extras.js?v=7";
-import { initSections } from "./sections.js?v=7";
+import { loadMeta, loadPage, prefetch, juzOfPage, toArabicNum } from "./quran.js?v=8";
+import { SURAH_NAMES } from "./surahs.js?v=8";
+import { STR, tr } from "./i18n.js?v=8";
+import { startSky } from "./sky.js?v=8";
+import { initExtras } from "./extras.js?v=8";
+import { initSections } from "./sections.js?v=8";
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -872,7 +872,9 @@ async function init() {
     apiBase: API_BASE, webId: S.webId,
   });
   SEC = initSections({ t, getLang: () => S.lang, toast, haptic, openSheet, closeSheet, IN_TG, TG, getUser: () => S.user, apiBase: API_BASE });
-  const view = new URLSearchParams(location.search).get("view");
+  // ?view=... yoki Telegram to'g'ridan-to'g'ri havolasi: t.me/QuronAppBot/quron?startapp=qibla
+  const startParam = IN_TG ? (TG.initDataUnsafe?.start_param || "") : "";
+  const view = new URLSearchParams(location.search).get("view") || (/^[a-z]+$/.test(startParam) ? startParam : null);
   if (view === "prayer" || view === "tasbih") {
     setTimeout(() => (view === "prayer" ? EX.openPrayer() : EX.openTasbih()), 300);
   } else if (["duas", "names", "qibla", "calendar", "islam", "donate"].includes(view)) {
@@ -883,7 +885,7 @@ async function init() {
   loadMeta().then((m) => { S.meta = m; if (!$("#sheetSurahs").hidden) renderList(); updateHeader(); }).catch(() => { });
   syncUser();
   // Telegram'dan yoki havoladan ma'lum sahifa bilan ochilsa — darrov kitobni ochamiz
-  const viewParam = new URLSearchParams(location.search).get("view");
+  const viewParam = new URLSearchParams(location.search).get("view") || (IN_TG && /^[a-z]+$/.test(TG.initDataUnsafe?.start_param || "") ? TG.initDataUnsafe.start_param : null);
   if ((urlPage > 0 || IN_TG) && !viewParam) {
     const startPage = urlPage > 0 ? urlPage : S.progress.page || 1;
     S.usedUrl = true;

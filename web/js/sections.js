@@ -1,8 +1,8 @@
 // Bo'limlar: duolar va zikrlar, 99 ism, Islom, taqvim, qibla, hissa qo'shish
-import { DUA_CATEGORIES } from "./data/duas.js?v=7";
-import { NAMES_99 } from "./data/names.js?v=7";
-import { ISLAM_TOPICS, ISLAMIC_EVENTS, HIJRI_MONTHS } from "./data/islam.js?v=7";
-import { cyrToLat } from "./translit.js?v=7";
+import { DUA_CATEGORIES } from "./data/duas.js?v=8";
+import { NAMES_99 } from "./data/names.js?v=8";
+import { ISLAM_TOPICS, ISLAMIC_EVENTS, HIJRI_MONTHS } from "./data/islam.js?v=8";
+import { cyrToLat } from "./translit.js?v=8";
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
