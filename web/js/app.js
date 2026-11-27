@@ -1,10 +1,10 @@
 // Qur'oni Karim — Erkinov loyihasi. Sayt, Telegram Mini App va PWA uchun yagona ilova.
-import { loadMeta, loadPage, prefetch, juzOfPage, toArabicNum } from "./quran.js?v=12";
-import { SURAH_NAMES } from "./surahs.js?v=12";
-import { STR, tr } from "./i18n.js?v=12";
-import { startSky } from "./sky.js?v=12";
-import { initExtras } from "./extras.js?v=12";
-import { initSections } from "./sections.js?v=12";
+import { loadMeta, loadPage, prefetch, juzOfPage, toArabicNum } from "./quran.js?v=13";
+import { SURAH_NAMES } from "./surahs.js?v=13";
+import { STR, tr } from "./i18n.js?v=13";
+import { startSky } from "./sky.js?v=13";
+import { initExtras } from "./extras.js?v=13";
+import { initSections } from "./sections.js?v=13";
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];

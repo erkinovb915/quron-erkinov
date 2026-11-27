@@ -372,6 +372,18 @@ export function initExtras(ctx) {
 
   return {
     openPrayer, openTasbih, refresh: () => { initTasbih(); renderTasbih(); renderPrayerSheet(); updateChips(); },
-    onUser: () => { if (!P.region && getUser()?.region) { P.region = null; loadPrayer().then(() => updateChips()); } renderNotifyBox(); },
+    onUser: () => {
+      // Hudud bot, mini ilova va sayt orasida bir xil bo'lsin: serverdagi (botda tanlangan) hudud ustun
+      const ur = getUser()?.region;
+      if (ur && ur !== "toshkent-shahri" && ur !== P.region) {
+        P.region = ur; store.set("region", ur); store.set("regionChosen", true);
+        loadPrayer().then(() => updateChips());
+      } else if (!P.region && ur) {
+        loadPrayer().then(() => updateChips());
+      } else if (P.region && P.region !== "toshkent-shahri" && ur === "toshkent-shahri") {
+        api("/api/settings", { region: P.region }).catch(() => { });
+      }
+      renderNotifyBox();
+    },
   };
 }
