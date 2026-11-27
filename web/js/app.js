@@ -673,11 +673,21 @@ function showInstallGuide() {
   const box = $("#installSteps");
   if (IN_TG) {
     const canHome = !!(TG.addToHomeScreen && TG.isVersionAtLeast && TG.isVersionAtLeast("8.0"));
-    box.innerHTML = `<div class="big">📲</div><h4>${t("installTitle")}</h4><p class="inst-p">${t("installTgText")}</p>
+    box.innerHTML = `<div class="big">📲</div><p class="inst-p">${t("installTgText")}</p>
       <div class="inst-btns">${canHome ? `<button class="btn btn-gold" id="instHome">📲 ${t("instHome")}</button>` : ""}
       <button class="btn ${canHome ? "" : "btn-gold"}" id="instBrowser">🌐 ${t("instBrowser")}</button></div>`;
     const hb = $("#instHome");
-    if (hb) hb.onclick = () => { haptic(); try { TG.addToHomeScreen(); } catch { toast(t("instBrowser")); } };
+    if (hb) {
+      hb.onclick = () => { haptic(); try { TG.addToHomeScreen(); } catch { toast(t("instBrowser")); } };
+      // Kompyuter/veb Telegram'da bu imkoniyat yo'q — tugmani yashiramiz, o'rnatilgan bo'lsa belgilaymiz
+      try {
+        TG.checkHomeScreenStatus && TG.checkHomeScreenStatus((st) => {
+          if (st === "unsupported") { hb.remove(); $("#instBrowser").classList.add("btn-gold"); }
+          else if (st === "added") { hb.disabled = true; hb.textContent = "✅ " + t("instAdded"); }
+        });
+      } catch { }
+      if (["tdesktop", "web", "weba", "webk", "macos", "unknown"].includes(TG.platform)) { hb.remove(); $("#instBrowser").classList.add("btn-gold"); }
+    }
     $("#instBrowser").onclick = () => { haptic(); const u = location.origin + "/?install=1"; try { TG.openLink(u, { try_browser: "chrome" }); } catch { window.open(u, "_blank"); } };
   } else if (isStandalone()) {
     box.innerHTML = `<div class="big">✅</div><h4>${t("installed")}</h4>`;
