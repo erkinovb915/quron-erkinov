@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#15705c"/><stop offset="1" stop-color="#04211c"/></linearGradient>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0b5"/><stop offset=".5" stop-color="#d4af37"/><stop offset="1" stop-color="#9c7a1e"/></linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#bg)"/>
+  <rect x="14" y="14" width="612" height="332" rx="16" fill="none" stroke="url(#g)" stroke-width="3"/>
+  <g transform="translate(150 180) scale(.62)">
+    <g fill="url(#g)"><rect x="-150" y="-150" width="300" height="300" rx="14"/><rect x="-150" y="-150" width="300" height="300" rx="14" transform="rotate(45)"/></g>
+    <g fill="#0b3d33"><rect x="-136" y="-136" width="272" height="272" rx="12"/><rect x="-136" y="-136" width="272" height="272" rx="12" transform="rotate(45)"/></g>
+    <circle r="118" fill="none" stroke="url(#g)" stroke-width="5"/>
+    <path d="M-92 -38 C-54 -58 -20 -54 0 -34 C20 -54 54 -58 92 -38 L92 66 C54 46 20 50 0 70 C-20 50 -54 46 -92 66 Z" fill="#fbf5e4"/>
+    <path d="M0 -34 V70" stroke="#c9a54c" stroke-width="4"/>
+  </g>
+  <text x="300" y="150" font-family="Georgia, serif" font-size="46" font-weight="700" fill="url(#g)">Qur'oni Karim</text>
+  <text x="302" y="196" font-family="Arial, sans-serif" font-size="20" fill="#f3e8c8">3D mushaf · namoz vaqtlari · duolar</text>
+  <text x="302" y="226" font-family="Arial, sans-serif" font-size="20" fill="#f3e8c8">qibla · tasbeh · taqvim</text>
+  <text x="302" y="290" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="url(#g)" letter-spacing="3">ERKINOV LOYIHASI</text>
+</svg>
