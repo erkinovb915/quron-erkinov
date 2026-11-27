@@ -325,7 +325,7 @@ async def lifespan(app):
         await webpush.init_keys()
     except Exception:
         log.exception("VAPID kalitlari yaratilmadi")
-    tasks = [asyncio.create_task(bot.reminder_loop())]
+    tasks = [asyncio.create_task(bot.reminder_loop()), asyncio.create_task(bot.keep_awake_loop())]
     if tg.BOT_TOKEN:
         try:
             me = await tg.call("getMe")

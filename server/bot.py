@@ -566,6 +566,24 @@ async def reminder_loop():
         await asyncio.sleep(30)
 
 
+def _ping_self_sync():
+    import urllib.request
+    try:
+        urllib.request.urlopen(f"{PUBLIC_URL}/health", timeout=20).read()
+    except Exception:
+        pass
+
+
+async def keep_awake_loop():
+    """Render bepul serveri 15 daqiqa so'rovsiz qolsa uxlab qoladi — namoz eslatmalari kechikmasligi uchun
+    har 8 daqiqada o'zining ommaviy manziliga so'rov yuboradi."""
+    if not PUBLIC_URL:
+        return
+    while True:
+        await asyncio.sleep(8 * 60)
+        await asyncio.to_thread(_ping_self_sync)
+
+
 async def _safe_prefetch():
     try:
         await prayer.prefetch_all()
