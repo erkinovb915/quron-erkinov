@@ -53,10 +53,36 @@ async def identify(data: dict):
             await db.merge_web_into_tg(web_id, user["id"])
             user = await db.get_user(user["id"])
         return user
+    # Saytda "Telegram orqali kirish" qilgan foydalanuvchi
+    sess_id = tg.check_session(data.get("tgSession") or "") if data.get("tgSession") else None
+    if sess_id:
+        user = await db.get_user(f"tg:{sess_id}")
+        if user:
+            return user
     web_id = data.get("webId") or ""
     if WEB_ID_RE.match(web_id):
         return await db.ensure_web_user(web_id, lang or "uz")
     return None
+
+
+async def api_tg_login(request: Request):
+    """Telegram Login Widget: tekshiradi, Telegram akkauntiga ulaydi va sessiya beradi."""
+    data = await body(request)
+    auth = tg.validate_login_widget(data.get("auth") or {})
+    if not auth:
+        return JSONResponse({"error": "bad_auth"}, status_code=401)
+    tg_id = int(auth["id"])
+    lang = data.get("lang") if data.get("lang") in ("uz", "ru") else None
+    user = await db.upsert_tg_user(tg_id, auth.get("first_name") or "", auth.get("username") or "", lang, "site")
+    web_id = data.get("webId") or ""
+    if WEB_ID_RE.match(web_id):
+        await db.merge_web_into_tg(web_id, user["id"])
+    user = await db.get_user(user["id"])
+    out = await public_user(user)
+    out["tgSession"] = tg.make_session(tg_id)
+    out["username"] = auth.get("username") or ""
+    out["photo"] = auth.get("photo_url") or ""
+    return JSONResponse(out)
 
 
 async def public_user(user: dict) -> dict:
@@ -82,6 +108,29 @@ def _int(v, lo, hi, default):
 
 async def api_config(request: Request):
     return JSONResponse({"bot_username": STATE["bot_username"], "total_pages": 604})
+
+
+_STK = {"t": 0.0, "sets": []}
+
+
+async def api_stickers(request: Request):
+    """Stiker to'plamlari havolalari (tayyorlari belgilanadi)."""
+    import time as _t
+    from . import stickers
+    if tg.BOT_TOKEN and _t.time() - _STK["t"] > 600:
+        out = []
+        try:
+            for item in await stickers.links():
+                try:
+                    st = await tg.call("getStickerSet", name=item["name"])
+                    item["ready"] = bool(st.get("stickers"))
+                except tg.TgError:
+                    item["ready"] = False
+                out.append(item)
+            _STK.update(t=_t.time() if all(i["ready"] for i in out) else _t.time() - 540, sets=out)
+        except Exception:
+            log.exception("api_stickers")
+    return JSONResponse({"sets": _STK["sets"]})
 
 
 async def api_auth(request: Request):
@@ -333,6 +382,8 @@ async def lifespan(app):
         except Exception:
             log.exception("getMe xatosi")
         await bot.setup(WEBHOOK_SECRET)
+        from . import stickers
+        tasks.append(asyncio.create_task(stickers.ensure_on_startup()))
     yield
     for task in tasks:
         task.cancel()
@@ -354,9 +405,11 @@ class CachedStatic(StaticFiles):
 routes = [
     Route("/health", health),
     Route("/api/config", api_config),
+    Route("/api/stickers", api_stickers),
     Route("/api/auth", api_auth, methods=["POST"]),
     Route("/api/progress", api_progress, methods=["POST"]),
     Route("/api/settings", api_settings, methods=["POST"]),
+    Route("/api/tg-login", api_tg_login, methods=["POST"]),
     Route("/api/cron", api_cron, methods=["GET", "POST"]),
     Route("/api/prayer", api_prayer),
     Route("/api/regions", api_regions),

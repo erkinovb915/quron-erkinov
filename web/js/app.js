@@ -1,10 +1,10 @@
 // Qur'oni Karim — Erkinov loyihasi. Sayt, Telegram Mini App va PWA uchun yagona ilova.
-import { loadMeta, loadPage, prefetch, juzOfPage, toArabicNum } from "./quran.js?v=8";
-import { SURAH_NAMES } from "./surahs.js?v=8";
-import { STR, tr } from "./i18n.js?v=8";
-import { startSky } from "./sky.js?v=8";
-import { initExtras } from "./extras.js?v=8";
-import { initSections } from "./sections.js?v=8";
+import { loadMeta, loadPage, prefetch, juzOfPage, toArabicNum } from "./quran.js?v=9";
+import { SURAH_NAMES } from "./surahs.js?v=9";
+import { STR, tr } from "./i18n.js?v=9";
+import { startSky } from "./sky.js?v=9";
+import { initExtras } from "./extras.js?v=9";
+import { initSections } from "./sections.js?v=9";
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -29,6 +29,8 @@ const S = {
   progress: store.get("progress", { page: 1, surah: 1, ayah: 1, t: 0 }),
   marks: store.get("marks", []),
   webId: store.get("webId", null),
+  tgSession: store.get("tgSession", ""),
+  tgName: store.get("tgName", ""),
   page: 1,
   user: null,
   meta: null,
@@ -50,7 +52,7 @@ async function api(path, data) {
   try {
     const r = await fetch(API_BASE + path, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...data, initData: IN_TG ? TG.initData : "", webId: S.webId, lang: S.lang }),
+      body: JSON.stringify({ ...data, initData: IN_TG ? TG.initData : "", webId: S.webId, lang: S.lang, tgSession: IN_TG ? "" : (S.tgSession || "") }),
     });
     if (!r.ok) return null;
     return await r.json();
@@ -491,10 +493,12 @@ function openAyah(key) {
 
 // ---------------- kirish ekrani ----------------
 function updateIntro() {
-  const p = S.progress.page || 1;
+  const p = (!S.usedUrl && urlPage > 0 ? urlPage : S.progress.page) || 1;
   const hasProgress = p > 1;
   $("#btnContinue").innerHTML = `<span>${hasProgress ? t("continueFrom", { p }) : t("start")}</span>`;
   $("#btnFromStart").hidden = !hasProgress;
+  const tgBtn = $("#introTg");
+  if (tgBtn) tgBtn.hidden = IN_TG || !!(S.tgSession && S.user?.telegram);
   const n = S.user?.pages_read;
   $("#introStat").textContent = hasProgress ? t("readStat", { n: n ?? "—", p }) : "";
 }
@@ -593,10 +597,29 @@ function renderTgBox() {
       <label class="switch"><input type="checkbox" id="swRemind" ${u?.remind ? "checked" : ""}><span></span></label></div>
       <p>${t("tgInText")}</p><div class="hours">${hours.map((h) =>
       `<button class="chip ${h === hour ? "active" : ""}" data-hour="${h}">${String(h).padStart(2, "0")}:00</button>`).join("")}</div>`;
+  } else if (S.tgSession && S.user?.telegram) {
+    // Saytda Telegram orqali kirilgan
+    const u = S.user;
+    box.innerHTML = `<h4>✅ ${t("tgLinked")}</h4><p>${esc(S.tgName || u.name || "")} · ${t("tgLinkedText")}</p>
+      <div class="setting" style="border:0;padding:4px 0"><span>${u.remind ? t("remindOn") : t("remindOff")}</span>
+      <label class="switch"><input type="checkbox" id="swRemind" ${u.remind ? "checked" : ""}><span></span></label></div>
+      <button class="btn btn-small" id="tgLogout">${t("logout")}</button>`;
   } else if (cfg.bot_username) {
     const link = `https://t.me/${cfg.bot_username}?start=link_${S.webId}`;
-    box.innerHTML = `<h4>${t("tgTitle")}</h4><p>${t("tgWebText")}</p>
-      <a class="btn-tg" href="${link}" target="_blank" rel="noopener">✈️ ${t("tgConnect")}</a>`;
+    box.innerHTML = `<h4>${t("tgLoginTitle")}</h4><p>${t("tgWebText")}</p>
+      <div id="tgWidget" class="tg-widget"></div>
+      <a class="tg-alt" href="${link}" target="_blank" rel="noopener">✈️ ${t("tgConnect")}</a>`;
+    // Rasmiy Telegram Login Widget
+    const sc = document.createElement("script");
+    sc.async = true;
+    sc.src = "https://telegram.org/js/telegram-widget.js?22";
+    sc.setAttribute("data-telegram-login", cfg.bot_username);
+    sc.setAttribute("data-size", "large");
+    sc.setAttribute("data-radius", "12");
+    sc.setAttribute("data-onauth", "onTelegramAuth(user)");
+    sc.setAttribute("data-request-access", "write");
+    sc.setAttribute("data-lang", S.lang === "ru" ? "ru" : "en");
+    $("#tgWidget").appendChild(sc);
   } else {
     box.innerHTML = "";
     box.hidden = true;
@@ -604,6 +627,31 @@ function renderTgBox() {
   }
   box.hidden = false;
 }
+
+// Telegram Login Widget javobi
+window.onTelegramAuth = async (auth) => {
+  try {
+    const r = await fetch(API_BASE + "/api/tg-login", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ auth, webId: S.webId, lang: S.lang }),
+    });
+    const u = await r.json();
+    if (!r.ok || !u.tgSession) { toast(t("tgLoginError")); return; }
+    S.tgSession = u.tgSession; store.set("tgSession", u.tgSession);
+    S.tgName = [auth.first_name, auth.username ? "@" + auth.username : ""].filter(Boolean).join(" ");
+    store.set("tgName", S.tgName);
+    S.user = u;
+    if (u.page > 1) { S.progress = { page: u.page, surah: u.surah, ayah: u.ayah, t: Date.now() }; store.set("progress", S.progress); }
+    toast(t("tgLoginOk")); haptic("medium");
+    renderTgBox(); updateIntro(); updateToday(); EX?.onUser();
+  } catch { toast(t("tgLoginError")); }
+};
+document.addEventListener("click", (e) => {
+  if (e.target.id === "tgLogout") {
+    S.tgSession = ""; S.tgName = ""; store.set("tgSession", ""); store.set("tgName", "");
+    syncUser().then(renderTgBox); renderTgBox();
+  }
+});
 
 // ---------------- PWA o'rnatish ----------------
 let deferredInstall = null;
@@ -656,6 +704,7 @@ function bind() {
   $$("[data-lang]").forEach((b) => (b.onclick = () => { store.set("langChosen", true); setLang(b.dataset.lang); api("/api/settings", { lang: b.dataset.lang }); }));
 
   $("#btnHome").onclick = showIntro;
+  $("#introTg").onclick = () => { $("#btnMenu").click(); };
   $("#pgPrev").onclick = () => go(-1);
   $("#pgNext").onclick = () => go(1);
   $("#pgNums").onclick = (e) => { const p = e.target.closest("[data-p]"); if (p) goTo(parseInt(p.dataset.p, 10)); };
@@ -877,21 +926,16 @@ async function init() {
   const view = new URLSearchParams(location.search).get("view") || (/^[a-z]+$/.test(startParam) ? startParam : null);
   if (view === "prayer" || view === "tasbih") {
     setTimeout(() => (view === "prayer" ? EX.openPrayer() : EX.openTasbih()), 300);
-  } else if (["duas", "names", "qibla", "calendar", "islam", "donate"].includes(view)) {
+  } else if (["duas", "names", "qibla", "calendar", "islam", "donate", "stickers"].includes(view)) {
     setTimeout(() => SEC.open(view), 300);
   }
   startSky($("#sky"));
   updateIntro();
   loadMeta().then((m) => { S.meta = m; if (!$("#sheetSurahs").hidden) renderList(); updateHeader(); }).catch(() => { });
   syncUser();
-  // Telegram'dan yoki havoladan ma'lum sahifa bilan ochilsa — darrov kitobni ochamiz
-  const viewParam = new URLSearchParams(location.search).get("view") || (IN_TG && /^[a-z]+$/.test(TG.initDataUnsafe?.start_param || "") ? TG.initDataUnsafe.start_param : null);
-  if ((urlPage > 0 || IN_TG) && !viewParam) {
-    const startPage = urlPage > 0 ? urlPage : S.progress.page || 1;
-    S.usedUrl = true;
-    setTimeout(() => openBook(startPage), IN_TG ? 900 : 600);
-  }
+  // Kitob o'zi ochilib ketmaydi: foydalanuvchi muqovadagi tugmani bosganda ochiladi
+  // (havoladagi ?p=N bo'lsa, "N-sahifadan davom etish" tugmasi shu sahifani ochadi)
   const p = S.progress.page;
-  if (p > 1 && !urlPage && !IN_TG) setTimeout(() => toast(t("welcomeBack", { p })), 900);
+  if (p > 1 && !urlPage) setTimeout(() => toast(t("welcomeBack", { p })), 900);
 }
 init();

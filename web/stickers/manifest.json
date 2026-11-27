@@ -1,0 +1,212 @@
+{
+ "anim": [
+  {
+   "file": "anim/salom.webm",
+   "emoji": "👋",
+   "text": "Assalomu alaykum!"
+  },
+  {
+   "file": "anim/alik.webm",
+   "emoji": "🤗",
+   "text": "Va alaykum assalom"
+  },
+  {
+   "file": "anim/omin.webm",
+   "emoji": "🤲",
+   "text": "Omin!"
+  },
+  {
+   "file": "anim/jazakalloh.webm",
+   "emoji": "💚",
+   "text": "Jazakalloh xoyr"
+  },
+  {
+   "file": "anim/mashaalloh.webm",
+   "emoji": "🤩",
+   "text": "Ma'shaAlloh!"
+  },
+  {
+   "file": "anim/inshaalloh.webm",
+   "emoji": "🙏",
+   "text": "InshaAlloh"
+  },
+  {
+   "file": "anim/alhamdulillah.webm",
+   "emoji": "😊",
+   "text": "Alhamdulillah"
+  },
+  {
+   "file": "anim/subhanalloh.webm",
+   "emoji": "📿",
+   "text": "SubhanAlloh"
+  },
+  {
+   "file": "anim/juma.webm",
+   "emoji": "🕌",
+   "text": "Juma muborak!"
+  },
+  {
+   "file": "anim/ramazon.webm",
+   "emoji": "🌙",
+   "text": "Ramazon muborak!"
+  },
+  {
+   "file": "anim/hayit.webm",
+   "emoji": "🎉",
+   "text": "Hayit muborak!"
+  },
+  {
+   "file": "anim/quron.webm",
+   "emoji": "📖",
+   "text": "Qur'on o'qiylik"
+  },
+  {
+   "file": "anim/tun.webm",
+   "emoji": "😴",
+   "text": "Xayrli tun"
+  },
+  {
+   "file": "anim/tong.webm",
+   "emoji": "☀️",
+   "text": "Xayrli tong!"
+  },
+  {
+   "file": "anim/barakalloh.webm",
+   "emoji": "👍",
+   "text": "Barakalloh!"
+  },
+  {
+   "file": "anim/sabr.webm",
+   "emoji": "🤍",
+   "text": "Sabr qiling 🤍"
+  }
+ ],
+ "emoji": [
+  {
+   "file": "emoji/nurjon.webm",
+   "emoji": "😊"
+  },
+  {
+   "file": "emoji/salom.webm",
+   "emoji": "👋"
+  },
+  {
+   "file": "emoji/dua.webm",
+   "emoji": "🤲"
+  },
+  {
+   "file": "emoji/mashaalloh.webm",
+   "emoji": "🤩"
+  },
+  {
+   "file": "emoji/rahmat.webm",
+   "emoji": "💚"
+  },
+  {
+   "file": "emoji/uxlash.webm",
+   "emoji": "😴"
+  },
+  {
+   "file": "emoji/masjid.webm",
+   "emoji": "🕌"
+  },
+  {
+   "file": "emoji/kaba.webm",
+   "emoji": "🕋"
+  },
+  {
+   "file": "emoji/quron.webm",
+   "emoji": "📖"
+  },
+  {
+   "file": "emoji/oy.webm",
+   "emoji": "🌙"
+  },
+  {
+   "file": "emoji/fonus.webm",
+   "emoji": "🏮"
+  },
+  {
+   "file": "emoji/tasbeh.webm",
+   "emoji": "📿"
+  },
+  {
+   "file": "emoji/alloh.webm",
+   "emoji": "☝️"
+  },
+  {
+   "file": "emoji/yurak.webm",
+   "emoji": "💚"
+  },
+  {
+   "file": "emoji/yulduz.webm",
+   "emoji": "⭐"
+  },
+  {
+   "file": "emoji/hurmo.webm",
+   "emoji": "🌴"
+  }
+ ],
+ "static": [
+  {
+   "file": "static/salom.png",
+   "emoji": "👋",
+   "text": "Assalomu alaykum"
+  },
+  {
+   "file": "static/jazakalloh.png",
+   "emoji": "💚",
+   "text": "Jazakalloh xoyr"
+  },
+  {
+   "file": "static/mashaalloh.png",
+   "emoji": "✨",
+   "text": "Ma'shaAlloh"
+  },
+  {
+   "file": "static/inshaalloh.png",
+   "emoji": "🙏",
+   "text": "InshaAlloh"
+  },
+  {
+   "file": "static/alhamdulillah.png",
+   "emoji": "😊",
+   "text": "Alhamdulillah"
+  },
+  {
+   "file": "static/subhanalloh.png",
+   "emoji": "📿",
+   "text": "SubhanAlloh"
+  },
+  {
+   "file": "static/allohuakbar.png",
+   "emoji": "☝️",
+   "text": "Allohu akbar"
+  },
+  {
+   "file": "static/barakalloh.png",
+   "emoji": "👍",
+   "text": "Barakallohu fik"
+  },
+  {
+   "file": "static/juma.png",
+   "emoji": "🕌",
+   "text": "Juma muborak"
+  },
+  {
+   "file": "static/ramazon.png",
+   "emoji": "🌙",
+   "text": "Ramazon muborak"
+  },
+  {
+   "file": "static/hayit.png",
+   "emoji": "🎉",
+   "text": "Hayit muborak"
+  },
+  {
+   "file": "static/omin.png",
+   "emoji": "🤲",
+   "text": "Omin"
+  }
+ ]
+}

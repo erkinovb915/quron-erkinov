@@ -1,5 +1,5 @@
 // Oflayn ishlash: ilova qobig'i va o'qilgan sahifalar keshda saqlanadi
-const SHELL = "quron-shell-v8";
+const SHELL = "quron-shell-v9";
 const DATA = "quron-data-v1";
 const ASSETS = ["/", "/index.html", "/img/star-tile.svg", "/img/medallion.svg", "/manifest.json", "/icons/icon-192.png"];
 
@@ -24,7 +24,7 @@ self.addEventListener("fetch", (e) => {
     }));
     return;
   }
-  if (url.origin !== location.origin || url.pathname.startsWith("/api/") || url.pathname.startsWith("/admin")) return;
+  if (url.origin !== location.origin || url.pathname.startsWith("/api/") || url.pathname.startsWith("/admin") || url.pathname.endsWith(".webm")) return;
   // Ilova fayllari: tarmoq birinchi (yangilanishlar uchun), oflaynda kesh
   e.respondWith(fetch(e.request).then((res) => {
     if (res.ok) caches.open(SHELL).then((c) => c.put(e.request, res.clone()));

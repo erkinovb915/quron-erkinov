@@ -37,7 +37,7 @@ def main_menu(user: dict, admin: bool = False) -> dict:
         [{"text": t(lang, "duas_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=duas"}}, {"text": t(lang, "qibla_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=qibla"}}],
         [{"text": t(lang, "calendar_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=calendar"}}, {"text": t(lang, "names_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=names"}}],
         [{"text": t(lang, "islam_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=islam"}}, {"text": t(lang, "donate_btn"), "callback_data": "don"}],
-        [{"text": t(lang, "lang"), "callback_data": "lang"}],
+        [{"text": t(lang, "stickers_btn"), "callback_data": "stk"}, {"text": t(lang, "lang"), "callback_data": "lang"}],
     ]
     if admin:
         rows.append([{"text": "👑 Admin menyu", "callback_data": "adm:menu"}])
@@ -302,6 +302,15 @@ async def _on_message(msg: dict):
         await tg.send(chat, donate_text(lang), {"inline_keyboard": [[{"text": t(lang, "donate_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=donate"}}]]})
     elif cmd in ("/tasbeh", "/tasbih"):
         await tg.send(chat, t(lang, "tasbih_open"), {"inline_keyboard": [[{"text": t(lang, "tasbih_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=tasbih"}}]]})
+    elif cmd in ("/stikerlar", "/stickers", "/stiker"):
+        await send_stickers(chat, lang)
+    elif cmd == "/stikeryarat" and admin:
+        from . import stickers
+        await tg.send(chat, "⏳ Stiker to'plamlari tayyorlanmoqda…")
+        rep = await stickers.ensure(frm["id"])
+        lines = [f"{'✅' if r['status'] != 'error' else '❌'} <b>{_esc(r['title'])}</b> — {r['status']} ({r['count']} ta)\n{r['url']}"
+                 + (f"\n<code>{_esc(r.get('error', ''))}</code>" if r.get("error") else "") for r in rep]
+        await tg.send(chat, "\n\n".join(lines))
     elif cmd == "/stats" and admin:
         await tg.send(chat, t(lang, "stats", **(await db.stats())))
     elif cmd == "/xabar" and admin:
@@ -311,6 +320,28 @@ async def _on_message(msg: dict):
         await tg.send(chat, await where_text(user), open_button(user))
     else:
         await tg.send(chat, t(lang, "help"), main_menu(user, admin))
+
+
+async def send_stickers(chat: int, lang: str):
+    from . import stickers
+    rows, sample = [], None
+    for item in await stickers.links():
+        try:
+            st = await tg.call("getStickerSet", name=item["name"])
+        except tg.TgError:
+            continue
+        rows.append([{"text": t(lang, "st_" + item["key"]), "url": item["url"]}])
+        if sample is None and item["key"] == "anim" and st.get("stickers"):
+            sample = st["stickers"][0]["file_id"]
+    if not rows:
+        await tg.send(chat, t(lang, "stickers_none"))
+        return
+    if sample:
+        try:
+            await tg.call("sendSticker", chat_id=chat, sticker=sample)
+        except tg.TgError:
+            pass
+    await tg.send(chat, t(lang, "stickers_text"), {"inline_keyboard": rows})
 
 
 async def _on_callback(cq: dict):
@@ -340,6 +371,8 @@ async def _on_callback(cq: dict):
         await tg.send(chat, subs.subscribe_text(lang), subs.subscribe_markup(missing, lang))
     elif data == "where":
         await tg.send(chat, await where_text(user), open_button(user))
+    elif data == "stk":
+        await send_stickers(chat, lang)
     elif data == "don":
         await tg.send(chat, donate_text(lang), {"inline_keyboard": [[{"text": t(lang, "donate_btn"), "web_app": {"url": f"{PUBLIC_URL}/?view=donate"}}]]})
     elif data in ("pr", "pr:upd"):
@@ -461,11 +494,11 @@ COMMANDS = {
     "uz": [("start", "Bosh menyu"), ("namoz", "🕌 Namoz vaqtlari"), ("davom", "📖 Qayerda qoldim"), ("duolar", "🤲 Duolar va zikrlar"),
            ("qibla", "🧭 Qibla"), ("taqvim", "📅 Taqvim"), ("tasbeh", "📿 Tasbeh"), ("ismlar", "✨ Allohning 99 ismi"),
            ("islom", "☪️ Islom asoslari"), ("hissa", "💝 Loyihaga hissa qo'shish"), ("eslatma", "🔔 Kundalik eslatma"),
-           ("til", "🌐 Tilni o'zgartirish")],
+           ("stikerlar", "🎨 Stikerlar"), ("til", "🌐 Tilni o'zgartirish")],
     "ru": [("start", "Главное меню"), ("namoz", "🕌 Время намаза"), ("davom", "📖 Где я остановился"), ("duolar", "🤲 Дуа и зикры"),
            ("qibla", "🧭 Кибла"), ("taqvim", "📅 Календарь"), ("tasbeh", "📿 Тасбих"), ("ismlar", "✨ 99 имён Аллаха"),
            ("islom", "☪️ Основы ислама"), ("hissa", "💝 Поддержать проект"), ("eslatma", "🔔 Напоминание"),
-           ("til", "🌐 Сменить язык")],
+           ("stikerlar", "🎨 Стикеры"), ("til", "🌐 Сменить язык")],
 }
 
 
@@ -489,7 +522,7 @@ async def setup(webhook_secret: str):
         await tg.call("setMyCommands", commands=[{"command": c, "description": d} for c, d in COMMANDS["ru"]],
                       language_code="ru")
         from .subs import ADMIN_IDS
-        admin_cmds = COMMANDS["uz"] + [("admin", "👑 Admin menyu"), ("xabar", "📣 Hammaga xabar"), ("stats", "📊 Statistika")]
+        admin_cmds = COMMANDS["uz"] + [("admin", "👑 Admin menyu"), ("xabar", "📣 Hammaga xabar"), ("stats", "📊 Statistika"), ("stikeryarat", "🎨 Stikerlarni yangilash")]
         for aid in ADMIN_IDS:
             try:
                 await tg.call("setMyCommands", commands=[{"command": c, "description": d} for c, d in admin_cmds],

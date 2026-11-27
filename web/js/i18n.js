@@ -1,5 +1,6 @@
 export const STR = {
   uz: {
+    tgLoginTitle: "✈️ Telegram orqali kirish", tgLoginShort: "Telegram orqali kirish", tgLinked: "Telegram ulangan", tgLinkedText: "o'qish joyingiz, eslatmalar va namoz vaqtlari bot bilan bir xil", logout: "Chiqish", tgLoginOk: "✅ Telegram ulandi!", tgLoginError: "Kirib bo'lmadi, qayta urinib ko'ring",
     duas: "Duolar va zikrlar", names99: "Allohning 99 ismi", qibla: "Qibla", calendar: "Taqvim", islam: "Islom", donate: "Loyihaga hissa qo'shing", donateShort: "Hissa qo'shish",
     quranRef: "Qur'on", namesHadith: "«Allohning to'qson to'qqiz ismi bor. Kim ularni yod olsa (ma'nosiga amal qilsa), jannatga kiradi» (Buxoriy, Muslim).",
     islamNote: "Qisqacha ma'lumot Hanafiy mazhabi bo'yicha. Batafsil savollar uchun imom-xatib yoki muslim.uz manbalariga murojaat qiling.",
@@ -9,7 +10,7 @@ export const STR = {
     qiblaFound: "Qibla shu tomonda!", turnRight: "O'ngga buriling", turnLeft: "Chapga buriling",
     qiblaNote: "Kompas aniq ishlashi uchun telefonni metall buyumlardan uzoqroq tuting va 8 shaklida aylantirib sozlang.",
     donateText: "Ushbu ilova bepul va reklamasiz. Loyihaning rivoji, server va yangi imkoniyatlar uchun hissa qo'shishingiz mumkin. Har bir yordamingiz — sadaqai joriya!",
-    copyCard: "Karta raqamini nusxalash", cardCopied: "✅ Karta raqami nusxalandi", donateThanks: "Alloh sizni yaxshilik bilan mukofotlasin!", 
+    copyCard: "Karta raqamini nusxalash", cardCopied: "✅ Karta raqami nusxalandi", donateThanks: "Alloh sizni yaxshilik bilan mukofotlasin!", stickersTitle: "Telegram stikerlar", stickersIntro: "Nurjon va islomiy kartalar — do'stlaringizga Telegram'da yuboring!", stAnim: "✨ Animatsion stikerlar", stEmoji: "😊 Animatsion emoji", stStatic: "🕌 Islomiy kartalar", stAdd: "➕ Qo'shish", stSoon: "tez orada", 
     prayerTimes: "Namoz vaqtlari", tasbih: "Tasbeh", nextPrayer: "Keyingi namoz", tomorrow: "Ertaga",
     prayerNames: { bomdod: "Bomdod", quyosh: "Quyosh", peshin: "Peshin", asr: "Asr", shom: "Shom", xufton: "Xufton" },
     chooseRegion: "📍 Shahringizni tanlang", prSourceOfficial: "Vaqtlar O'zbekiston musulmonlari idorasi jadvali asosida (namoz-vaqti.uz)",
@@ -46,6 +47,7 @@ export const STR = {
     subTitle: "📢 Obuna bo'ling", subText: "Ilovadan foydalanish uchun quyidagi kanallarga obuna bo'ling:", subCheck: "✅ Obuna bo'ldim", subNot: "Hali hamma kanallarga obuna bo'lmadingiz",
   },
   ru: {
+    tgLoginTitle: "✈️ Вход через Telegram", tgLoginShort: "Войти через Telegram", tgLinked: "Telegram подключён", tgLinkedText: "прогресс, напоминания и время намаза общие с ботом", logout: "Выйти", tgLoginOk: "✅ Telegram подключён!", tgLoginError: "Не удалось войти, попробуйте ещё раз",
     duas: "Дуа и зикры", names99: "99 имён Аллаха", qibla: "Кибла", calendar: "Календарь", islam: "Ислам", donate: "Поддержать проект", donateShort: "Поддержать",
     quranRef: "Коран", namesHadith: "«У Аллаха девяносто девять имён. Кто выучит их (и будет следовать им), войдёт в Рай» (Бухари, Муслим).",
     islamNote: "Краткая информация по ханафитскому мазхабу. С подробными вопросами обращайтесь к имаму или на muslim.uz.",
@@ -55,7 +57,7 @@ export const STR = {
     qiblaFound: "Кибла в этом направлении!", turnRight: "Поверните вправо", turnLeft: "Поверните влево",
     qiblaNote: "Для точности держите телефон подальше от металла и откалибруйте его движением «восьмёркой».",
     donateText: "Приложение бесплатное и без рекламы. Вы можете поддержать развитие проекта, сервер и новые функции. Каждая помощь — садака джария!",
-    copyCard: "Скопировать номер карты", cardCopied: "✅ Номер карты скопирован", donateThanks: "Да вознаградит вас Аллах благом!", 
+    copyCard: "Скопировать номер карты", cardCopied: "✅ Номер карты скопирован", donateThanks: "Да вознаградит вас Аллах благом!", stickersTitle: "Стикеры Telegram", stickersIntro: "Нурджон и исламские карточки — отправляйте друзьям в Telegram!", stAnim: "✨ Анимированные стикеры", stEmoji: "😊 Анимированные эмодзи", stStatic: "🕌 Исламские карточки", stAdd: "➕ Добавить", stSoon: "скоро", 
     prayerTimes: "Время намаза", tasbih: "Тасбих", nextPrayer: "Следующий намаз", tomorrow: "Завтра",
     prayerNames: { bomdod: "Фаджр", quyosh: "Восход", peshin: "Зухр", asr: "Аср", shom: "Магриб", xufton: "Иша" },
     chooseRegion: "📍 Выберите ваш город", prSourceOfficial: "По расписанию Управления мусульман Узбекистана (namoz-vaqti.uz)",

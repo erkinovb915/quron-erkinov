@@ -1,8 +1,8 @@
 // Bo'limlar: duolar va zikrlar, 99 ism, Islom, taqvim, qibla, hissa qo'shish
-import { DUA_CATEGORIES } from "./data/duas.js?v=8";
-import { NAMES_99 } from "./data/names.js?v=8";
-import { ISLAM_TOPICS, ISLAMIC_EVENTS, HIJRI_MONTHS } from "./data/islam.js?v=8";
-import { cyrToLat } from "./translit.js?v=8";
+import { DUA_CATEGORIES } from "./data/duas.js?v=9";
+import { NAMES_99 } from "./data/names.js?v=9";
+import { ISLAM_TOPICS, ISLAMIC_EVENTS, HIJRI_MONTHS } from "./data/islam.js?v=9";
+import { cyrToLat } from "./translit.js?v=9";
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -31,7 +31,7 @@ export function initSections(ctx) {
     const { view, arg } = stack[stack.length - 1];
     backBtn.style.visibility = stack.length > 1 ? "visible" : "hidden";
     const r = { duas: viewDuas, duaCat: viewDuaCat, names: viewNames, islam: viewIslam, topic: viewTopic,
-      calendar: viewCalendar, qibla: viewQibla, donate: viewDonate }[view];
+      calendar: viewCalendar, qibla: viewQibla, donate: viewDonate, stickers: viewStickers }[view];
     r(arg);
   }
 
@@ -370,6 +370,43 @@ export function initSections(ctx) {
         <p class="don-dua">جَزَاكُمُ اللَّهُ خَيْرًا<br><small>${t("donateThanks")}</small></p>
       </div>`;
   }
+
+  // ================= STIKERLAR =================
+  let stkCache = null;
+  async function viewStickers() {
+    title.textContent = "🎨 " + t("stickersTitle");
+    body.innerHTML = `<div class="spinner"></div>`;
+    try {
+      if (!stkCache) {
+        const [man, links] = await Promise.all([
+          fetch("/stickers/manifest.json").then((r) => r.json()),
+          fetch(apiBase + "/api/stickers").then((r) => r.json()).catch(() => ({ sets: [] })),
+        ]);
+        stkCache = { man, links: Object.fromEntries((links.sets || []).map((x) => [x.key, x])) };
+      }
+    } catch { body.innerHTML = `<p class="stk-intro">⚠️</p>`; return; }
+    if (stack[stack.length - 1].view !== "stickers") return;
+    const { man, links } = stkCache;
+    const block = (key, label, items, cls) => {
+      const l = links[key];
+      const add = l && l.ready ? `<button class="btn btn-small btn-gold stk-add" data-stk="${esc(l.url)}">${t("stAdd")}</button>` : `<span class="stk-wait">${t("stSoon")}</span>`;
+      const media = items.map((it) => it.file.endsWith(".webm")
+        ? `<video src="/stickers/${it.file}" autoplay loop muted playsinline preload="metadata"></video>`
+        : `<img src="/stickers/${it.file}" alt="${esc(it.text || "")}" loading="lazy">`).join("");
+      return `<section class="stk-block"><div class="stk-head"><b>${label}</b>${add}</div><div class="stk-grid ${cls}">${media}</div></section>`;
+    };
+    body.innerHTML = `<p class="stk-intro">${t("stickersIntro")}</p>`
+      + block("anim", t("stAnim"), man.anim || [], "")
+      + block("emoji", t("stEmoji"), man.emoji || [], "em")
+      + block("static", t("stStatic"), man.static || [], "");
+  }
+  body.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-stk]");
+    if (!b) return;
+    haptic();
+    const url = b.dataset.stk;
+    if (IN_TG && TG && TG.openTelegramLink) TG.openTelegramLink(url); else window.open(url, "_blank", "noopener");
+  });
 
   // Tashqi tugmalar
   document.addEventListener("click", (e) => {

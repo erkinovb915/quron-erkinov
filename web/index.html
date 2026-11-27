@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://api.alquran.cloud">
 <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css?v=8">
+<link rel="stylesheet" href="/css/style.css?v=9">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -65,11 +65,13 @@
     <button class="feat" data-sec="calendar"><span>📅</span><b data-i18n="calendar">Taqvim</b></button>
     <button class="feat" data-sec="islam"><span>☪️</span><b data-i18n="islam">Islom</b></button>
     <button class="feat feat-don" data-sec="donate"><span>💝</span><b data-i18n="donateShort">Hissa qo'shish</b></button>
+    <button class="feat feat-wide" data-sec="stickers"><img src="/stickers/static/salom.png" alt="" width="34" height="34"><b data-i18n="stickersTitle">Telegram stikerlar</b><img src="/stickers/static/mashaalloh.png" alt="" width="34" height="34"></button>
   </div>
   <div class="intro-lang">
     <button class="chip" data-lang="uz">🇺🇿 O'zbekcha</button>
     <button class="chip" data-lang="ru">🇷🇺 Русский</button>
   </div>
+  <button class="intro-tg" id="introTg" hidden>✈️ <span data-i18n="tgLoginShort">Telegram orqali kirish</span></button>
   <p class="intro-stat" id="introStat"></p>
 </section>
 
@@ -183,6 +185,7 @@
     <button class="feat" data-sec="calendar"><span>📅</span><b data-i18n="calendar">Taqvim</b></button>
     <button class="feat" data-sec="islam"><span>☪️</span><b data-i18n="islam">Islom</b></button>
     <button class="feat feat-don" data-sec="donate"><span>💝</span><b data-i18n="donateShort">Hissa qo'shish</b></button>
+    <button class="feat feat-wide" data-sec="stickers"><img src="/stickers/static/salom.png" alt="" width="34" height="34"><b data-i18n="stickersTitle">Telegram stikerlar</b><img src="/stickers/static/mashaalloh.png" alt="" width="34" height="34"></button>
     </div>
     <div class="stat-grid" id="statGrid"></div>
 
@@ -327,6 +330,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script type="module" src="/js/app.js?v=8"></script>
+<script type="module" src="/js/app.js?v=9"></script>
 </body>
 </html>

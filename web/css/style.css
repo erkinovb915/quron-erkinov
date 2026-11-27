@@ -782,3 +782,22 @@ body.reading .banner.show { transform: translate(-50%, 0); }
 .bc-brand { font-size: 12px; font-weight: 800; color: var(--gold-2); text-transform: uppercase; letter-spacing: .5px; }
 .don-dua { font-family: "Amiri", serif; font-size: 24px; color: var(--gold-2); margin: 0; line-height: 1.6; }
 .don-dua small { font-family: "Manrope", sans-serif; font-size: 13px; color: var(--ui-text); opacity: .8; }
+
+.tg-widget { min-height: 44px; margin: 6px 0 10px; }
+.tg-alt { display: inline-block; font-size: 13px; color: #8fd3ff; text-decoration: none; opacity: .9; }
+.intro-tg { padding: 9px 16px; border-radius: 999px; background: #2aabee; color: #fff; font-weight: 700; font-size: 14px; box-shadow: 0 8px 20px -8px rgba(42, 171, 238, .8); }
+
+/* Stikerlar */
+.feat-grid .feat-wide { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 10px; padding: 6px 10px;
+  background: linear-gradient(100deg, rgba(43, 179, 143, .25), rgba(212, 175, 55, .22)); }
+.feat-grid .feat-wide b { font-size: 13px; }
+.feat-wide img { width: 34px; height: 34px; object-fit: contain; }
+.stk-intro { margin: 0 0 12px; font-size: 14px; line-height: 1.55; opacity: .9; text-align: center; }
+.stk-block { margin: 0 0 18px; padding: 12px; border-radius: 18px; background: var(--ui-card, rgba(255,255,255,.06)); border: 1px solid rgba(212,175,55,.25); }
+.stk-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.stk-head b { font-size: 15px; }
+.stk-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.stk-grid.em { grid-template-columns: repeat(8, 1fr); }
+.stk-grid video, .stk-grid img { width: 100%; aspect-ratio: 1; object-fit: contain; display: block; }
+.stk-add { white-space: nowrap; }
+.stk-wait { font-size: 12px; opacity: .7; }
